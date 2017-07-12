@@ -20,73 +20,73 @@ class Scenario(Analysis):
     #Input Parameters
     #input_objectives = models.ManyToManyField("Objective")
     #input_parameters = models.ManyToManyField("Parameter")
-    
+
     #input_parameter_dist_shore = models.BooleanField(verbose_name='Distance to Shore Parameter')
     #input_min_dist_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
     #input_max_dist_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
     #input_dist_shore = models.FloatField(verbose_name='Distance from Shoreline')
     #input_dist_port = models.FloatField(verbose_name='Distance to Port')
-    
+
     #GeoPhysical
-    
+
     input_parameter_depth = models.BooleanField(verbose_name='Depth Parameter', default=False)
     input_min_depth = models.FloatField(verbose_name='Minimum Depth', null=True, blank=True)
     input_max_depth = models.FloatField(verbose_name='Maximum Depth', null=True, blank=True)
-    
+
     input_parameter_distance_to_shore = models.BooleanField(verbose_name='Distance to Shore', default=False)
     input_min_distance_to_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
     input_max_distance_to_shore = models.FloatField(verbose_name='Maximum Distance to Shore', null=True, blank=True)
-    
+
     input_parameter_substrate = models.BooleanField(verbose_name='Substrate Parameter', default=False)
     input_substrate = models.ManyToManyField('Substrate', null=True, blank=True)
-    
+
     input_parameter_sediment = models.BooleanField(verbose_name='Sediment Parameter', default=False)
     input_sediment = models.ManyToManyField('Sediment', null=True, blank=True)
-    
-    #Wind Energy 
-    
+
+    #Wind Energy
+
     input_parameter_wind_speed = models.BooleanField(verbose_name='Wind Speed Parameter', default=False)
     input_avg_wind_speed = models.FloatField(verbose_name='Average Wind Speed', null=True, blank=True)
-    
+
     input_parameter_distance_to_awc = models.BooleanField(verbose_name='Distance to AWC Station', default=False)
     input_distance_to_awc = models.FloatField(verbose_name='Maximum Distance to AWC Station', null=True, blank=True)
-    
+
     input_parameter_distance_to_substation = models.BooleanField(verbose_name='Distance to Coastal Substation', default=False)
     input_distance_to_substation = models.FloatField(verbose_name='Maximum Distance to Coastal Substation', null=True, blank=True)
-    
+
     input_parameter_wea = models.BooleanField(verbose_name='WEA Parameter', default=False)
     input_wea = models.ManyToManyField('WEA', null=True, blank=True)
-    
+
     #Shipping
-    
+
     input_filter_ais_density = models.BooleanField(verbose_name='Excluding Areas with AIS Density >= 1', default=False)
-    #input_ais_density = models.FloatField(verbose_name='Mean AIS Density', null=True, blank=True)    
-    
+    #input_ais_density = models.FloatField(verbose_name='Mean AIS Density', null=True, blank=True)
+
     input_filter_distance_to_shipping = models.BooleanField(verbose_name='Distance to Ship Routing Measures', default=False)
     input_distance_to_shipping = models.FloatField(verbose_name='Minimum Distance to Ship Routing Measures', null=True, blank=True)
-    
+
     #Security
-    
+
     input_filter_uxo = models.BooleanField(verbose_name='Excluding Areas with UXO', default=False)
-    
+
     #Descriptors (name field is inherited from Analysis)
-    
+
     description = models.TextField(null=True, blank=True)
     satisfied = models.BooleanField(default=True)
     active = models.BooleanField(default=True)
-            
-    #I'm finding myself wishing lease_blocks was spelled without the underscore...            
-    lease_blocks = models.TextField(verbose_name='Lease Block IDs', null=True, blank=True)  
+
+    #I'm finding myself wishing lease_blocks was spelled without the underscore...
+    lease_blocks = models.TextField(verbose_name='Lease Block IDs', null=True, blank=True)
     geometry_final_area = models.FloatField(verbose_name='Total Area', null=True, blank=True)
     geometry_dissolved = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Scenario result dissolved")
-                
+
     def serialize_attributes(self):
         attributes = []
         if self.input_parameter_wind_speed:
             wind_speed = '%.1f m/s' % (self.input_avg_wind_speed)
             attributes.append({'title': 'Minimum Average Wind Speed', 'data': wind_speed})
         if self.input_parameter_distance_to_shore:
-            distance_to_shore = '%.0f - %.0f miles' % (self.input_min_distance_to_shore, 
+            distance_to_shore = '%.0f - %.0f miles' % (self.input_min_distance_to_shore,
                                                        self.input_max_distance_to_shore)
             attributes.append({'title': 'Distance to Shore', 'data': distance_to_shore})
         if self.input_parameter_depth:
@@ -111,18 +111,18 @@ class Scenario(Analysis):
             attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
         attributes.append({'title': 'Number of Leaseblocks', 'data': self.lease_blocks.count(',')+1})
         return { 'event': 'click', 'attributes': attributes }
-    
-    
+
+
     def geojson(self, srid):
         props = get_properties_json(self)
         props['absolute_url'] = self.get_absolute_url()
         json_geom = self.geometry_dissolved.transform(srid, clone=True).json
         return get_feature_json(json_geom, json.dumps(props))
-    
+
     def run(self):
-    
+
         result = LeaseBlock.objects.all()
-        
+
         if self.input_parameter_distance_to_shore:
             #why isn't this max_distance >= input.min_distance && min_distance <= input.max_distance ???
             result = result.filter(avg_distance__gte=self.input_min_distance_to_shore, avg_distance__lte=self.input_max_distance_to_shore)
@@ -160,25 +160,25 @@ class Scenario(Analysis):
         #Security
         if self.input_filter_uxo:
             result = result.filter(uxo=0)
-        
+
         dissolved_geom = result.aggregate(Union('geometry'))
-        
+
         if dissolved_geom:
             dissolved_geom = dissolved_geom['geometry__union']
         else:
             raise Exception("No lease blocks available with the current filters.")
-        
+
         if type(dissolved_geom) == MultiPolygon:
             self.geometry_dissolved = dissolved_geom
         else:
-            self.geometry_dissolved = MultiPolygon(dissolved_geom, 
-                                                   srid=dissolved_geom.srid) 
-        
+            self.geometry_dissolved = MultiPolygon(dissolved_geom,
+                                                   srid=dissolved_geom.srid)
+
         self.active = True
 
         self.geometry_final_area = self.geometry_dissolved.area
-        self.lease_blocks = ','.join(str(i) 
-                                     for i in result.values_list('id', 
+        self.lease_blocks = ','.join(str(i)
+                                     for i in result.values_list('id',
                                                                  flat=True))
 
         if self.lease_blocks:
@@ -186,8 +186,8 @@ class Scenario(Analysis):
         else:
             self.satisfied = False
 
-        return True        
-    
+        return True
+
     def save(self, rerun=None, *args, **kwargs):
         if rerun is None and self.pk is None:
             rerun = True
@@ -202,35 +202,35 @@ class Scenario(Analysis):
                     for f in Scenario.input_fields():
                         # Is original value different from form value?
                         if getattr(orig, f.name) != getattr(self, f.name):
-                            #print 'input_field, %s, has changed' %f.name
+                            #print('input_field, %s, has changed' %f.name)
                             rerun = True
-                            break                                                                                                                   
+                            break
                 if not rerun:
                     '''
-                        the substrates need to be grabbed, then saved, then grabbed again because 
-                        both getattr calls (orig and self) return the same original list until the model has been saved 
-                        (perhaps because form.save_m2m has to be called), after which calls to getattr will 
+                        the substrates need to be grabbed, then saved, then grabbed again because
+                        both getattr calls (orig and self) return the same original list until the model has been saved
+                        (perhaps because form.save_m2m has to be called), after which calls to getattr will
                         return the same list (regardless of whether we use orig or self)
-                    ''' 
-                    orig_weas = set(getattr(self, 'input_wea').all())   
-                    orig_substrates = set(getattr(self, 'input_substrate').all())  
-                    orig_sediments = set(getattr(self, 'input_sediment').all())                    
-                    super(Scenario, self).save(rerun=False, *args, **kwargs)  
-                    new_weas = set(getattr(self, 'input_wea').all())                   
-                    new_substrates = set(getattr(self, 'input_substrate').all()) 
-                    new_sediments = set(getattr(self, 'input_sediment').all())   
+                    '''
+                    orig_weas = set(getattr(self, 'input_wea').all())
+                    orig_substrates = set(getattr(self, 'input_substrate').all())
+                    orig_sediments = set(getattr(self, 'input_sediment').all())
+                    super(Scenario, self).save(rerun=False, *args, **kwargs)
+                    new_weas = set(getattr(self, 'input_wea').all())
+                    new_substrates = set(getattr(self, 'input_substrate').all())
+                    new_sediments = set(getattr(self, 'input_sediment').all())
                     if orig_substrates != new_substrates or orig_sediments != new_sediments or orig_weas != new_weas:
-                        rerun = True    
+                        rerun = True
             super(Scenario, self).save(rerun=rerun, *args, **kwargs)
-        else: #editing a scenario and rerun is provided 
+        else: #editing a scenario and rerun is provided
             super(Scenario, self).save(rerun=rerun, *args, **kwargs)
-    
+
     def __unicode__(self):
         return u'%s' % self.name
-        
+
     def support_filename(self):
         return os.path.basename(self.support_file.name)
-        
+
     @classmethod
     def mapnik_geomfield(self):
         return "output_geom"
@@ -238,19 +238,19 @@ class Scenario(Analysis):
     @classmethod
     def mapnik_style(self):
         polygon_style = mapnik.Style()
-        
+
         ps = mapnik.PolygonSymbolizer(mapnik.Color('#ffffff'))
         ps.fill_opacity = 0.5
-        
+
         ls = mapnik.LineSymbolizer(mapnik.Color('#555555'),0.75)
         ls.stroke_opacity = 0.5
-        
+
         r = mapnik.Rule()
         r.symbols.append(ps)
         r.symbols.append(ls)
         polygon_style.rules.append(r)
-        return polygon_style     
-    
+        return polygon_style
+
     @classmethod
     def input_parameter_fields(klass):
         return [f for f in klass._meta.fields if f.attname.startswith('input_parameter_')]
@@ -267,29 +267,29 @@ class Scenario(Analysis):
             leaseblock_ids = [int(id) for id in self.lease_blocks.split(',')]
         leaseblocks = LeaseBlock.objects.filter(pk__in=leaseblock_ids)
         return leaseblocks
-    
+
     @property
     def num_lease_blocks(self):
         if self.lease_blocks == '':
             return 0
         return len(self.lease_blocks.split(','))
-    
+
     @property
     def geometry_is_empty(self):
         return len(self.lease_blocks) == 0
-    
+
     @property
     def input_wea_names(self):
         return [wea.wea_name for wea in self.input_wea.all()]
-        
+
     @property
     def input_substrate_names(self):
         return [substrate.substrate_name for substrate in self.input_substrate.all()]
-        
+
     @property
     def input_sediment_names(self):
         return [sediment.sediment_name for sediment in self.input_sediment.all()]
-    
+
     #TODO: is this being used...?  Yes, see show.html
     @property
     def has_wind_energy_criteria(self):
@@ -298,19 +298,19 @@ class Scenario(Analysis):
             if getattr(self, wp.name):
                 return True
         return False
-        
+
     @property
     def has_shipping_filters(self):
         shipping_filters = Scenario.input_filter_fields()
         for sf in shipping_filters:
             if getattr(self, sf.name):
                 return True
-        return False 
-        
+        return False
+
     @property
     def has_military_filters(self):
         return False
-    
+
     @property
     def color(self):
         try:
@@ -318,7 +318,7 @@ class Scenario(Analysis):
         except:
             return '778B1A55'
 
-    @property 
+    @property
     def kml_working(self):
         return """
         <Placemark id="%s">
@@ -327,8 +327,8 @@ class Scenario(Analysis):
         </Placemark>
         """ % (self.uid, escape(self.name))
 
-    @property 
-    def kml(self):  
+    @property
+    def kml(self):
         #the following list appendation strategy was a good 10% faster than string concatenation
         #(biggest improvement however came by adding/populating a geometry_client column in leaseblock table)
         combined_kml_list = []
@@ -341,7 +341,7 @@ class Scenario(Analysis):
         combined_kml_list.append('<LookAt><longitude>-73.5</longitude><latitude>39</latitude><heading>0</heading><range>600000</range></LookAt>')
         combined_kml_list.append('<styleUrl>#%s-default</styleUrl>' % (self.model_uid()))
         combined_kml_list.append('%s' % self.leaseblock_style())
-        print 'Generating KML for %s Lease Blocks' % len(leaseblock_ids)
+        print('Generating KML for %s Lease Blocks' % len(leaseblock_ids))
         start_time = time.time()
         leaseblocks = LeaseBlock.objects.filter(pk__in=leaseblock_ids)
         for leaseblock in leaseblocks:
@@ -367,8 +367,8 @@ class Scenario(Analysis):
                         </ExtendedData>
                         %s
                     </Placemark>
-                    """ % ( self.model_uid(), self.name, leaseblock.prot_numb,                             
-                            leaseblock.depth_range_output, 
+                    """ % ( self.model_uid(), self.name, leaseblock.prot_numb,
+                            leaseblock.depth_range_output,
                             leaseblock.majority_seabed, #LeaseBlock Update: might change back to leaseblock.substrate
                             leaseblock.majority_sediment, #TODO: might change sediment to a more user friendly output
                             leaseblock.wea_label,
@@ -377,24 +377,24 @@ class Scenario(Analysis):
                             #LeaseBlock Update: added the following two entries (min and max) to replace avg wind speed for now
                             leaseblock.wind_speed_output,
                             leaseblock.ais_density,
-                            self.user, self.date_modified.replace(microsecond=0), 
+                            self.user, self.date_modified.replace(microsecond=0),
                             #asKml(leaseblock.geometry.transform( settings.GEOMETRY_CLIENT_SRID, clone=True ))
                             asKml(leaseblock.geometry_client)
-                          ) 
-            except: 
+                          )
+            except:
                 #this is in place to handle (at least one - "NJ18-05_6420") instance in which null value was used in float field max_distance
-                print "The following leaseblock threw an error while generating KML:  %s" %leaseblock.prot_numb
+                print("The following leaseblock threw an error while generating KML:  %s" %leaseblock.prot_numb)
                 continue
             combined_kml_list.append(kml )
         combined_kml_list.append("</Folder>")
         combined_kml = ''.join(combined_kml_list)
         elapsed_time = time.time() - start_time
-        print 'Finished generating KML (with a list) for %s Lease Blocks in %s seconds' % (len(leaseblock_ids), elapsed_time)
-        
+        print('Finished generating KML (with a list) for %s Lease Blocks in %s seconds' % (len(leaseblock_ids), elapsed_time))
+
         return combined_kml
-    
+
     def leaseblock_style(self):
-        #LeaseBlock Update:  changed the following from <p>Avg Wind Speed: $[wind_speed] 
+        #LeaseBlock Update:  changed the following from <p>Avg Wind Speed: $[wind_speed]
         return  """
                 <Style id="%s-leaseblock">
                     <BalloonStyle>
@@ -420,7 +420,7 @@ class Scenario(Analysis):
                                 <table width="250">
                                     <tr><td> Shipping Density: <b>$[ais_density]</b> </td></tr>
                                 </table>
-                            </font>  
+                            </font>
                             <font size=1>created by $[user] on $[modified]</font>
                         ]]> </text>
                     </BalloonStyle>
@@ -432,7 +432,7 @@ class Scenario(Analysis):
                     </PolyStyle>
                 </Style>
             """ % (self.model_uid())
-        
+
     @property
     def kml_style(self):
         return """
@@ -442,11 +442,11 @@ class Scenario(Analysis):
             </ListStyle>
         </Style>
         """ % (self.model_uid())
-        
+
     @property
     def get_id(self):
         return self.id
-    
+
     class Options:
         verbose_name = 'Spatial Design for Wind Energy'
         icon_url = 'marco/img/multi.png'
@@ -458,9 +458,9 @@ class Scenario(Analysis):
 class Objective(models.Model):
     name = models.CharField(max_length=35)
     color = models.CharField(max_length=8, default='778B1A55')
-    
+
     def __unicode__(self):
-        return u'%s' % self.name        
+        return u'%s' % self.name
 
 #no longer needed?
 class Parameter(models.Model):
@@ -468,7 +468,7 @@ class Parameter(models.Model):
     name = models.CharField(max_length=35, null=True, blank=True)
     shortname = models.CharField(max_length=35, null=True, blank=True)
     objectives = models.ManyToManyField("Objective", null=True, blank=True)
-    
+
     def __unicode__(self):
         return u'%s' % self.name
 
@@ -477,28 +477,28 @@ class LeaseBlock(models.Model):
     prot_aprv = models.CharField(max_length=11, null=True, blank=True)
     block_number = models.CharField(max_length=6, null=True, blank=True)
     prot_numb = models.CharField(max_length=15, null=True, blank=True)
-    
+
     min_depth = models.FloatField()
     max_depth = models.FloatField()
     avg_depth = models.FloatField()
-    
+
     min_wind_speed = models.FloatField()
     max_wind_speed = models.FloatField()
-    
-    majority_sediment = models.CharField(max_length=35, null=True, blank=True)  #LeaseBlock Update: might change back to IntegerField 
+
+    majority_sediment = models.CharField(max_length=35, null=True, blank=True)  #LeaseBlock Update: might change back to IntegerField
     variety_sediment = models.IntegerField()
-    
-    majority_seabed = models.CharField(max_length=35, null=True, blank=True) #LeaseBlock Update: might change back to IntegerField 
+
+    majority_seabed = models.CharField(max_length=35, null=True, blank=True) #LeaseBlock Update: might change back to IntegerField
     variety_seabed = models.IntegerField(null=True, blank=True)
-    
+
     min_distance = models.FloatField(null=True, blank=True)
     max_distance = models.FloatField(null=True, blank=True)
     avg_distance = models.FloatField(null=True, blank=True)
-    
+
     awc_min_distance = models.FloatField(null=True, blank=True)
     awc_max_distance = models.FloatField(null=True, blank=True)
     awc_avg_distance = models.FloatField(null=True, blank=True)
-    
+
     wea_number = models.IntegerField(null=True, blank=True)
     wea_name = models.CharField(max_length=10, null=True, blank=True)
 
@@ -522,14 +522,14 @@ class LeaseBlock(models.Model):
     ais_tugtow_vessels_low = models.FloatField(null=True, blank=True)
     ais_tugtow_vessels_medium = models.FloatField(null=True, blank=True)
     ais_tugtow_vessels_high = models.FloatField(null=True, blank=True)
-    
+
     min_wind_speed_rev = models.FloatField(null=True, blank=True)
     max_wind_speed_rev = models.FloatField(null=True, blank=True)
-    
+
     tsz_min_distance = models.FloatField(null=True, blank=True)
     tsz_max_distance = models.FloatField(null=True, blank=True)
     tsz_mean_distance = models.FloatField(null=True, blank=True)
-    
+
     lace_coral_count = models.IntegerField(null=True, blank=True)
     lace_coral_name = models.CharField(max_length=50, null=True, blank=True)
     black_coral_count = models.IntegerField(null=True, blank=True)
@@ -542,7 +542,7 @@ class LeaseBlock(models.Model):
     sea_pen_name = models.CharField(max_length=50, null=True, blank=True)
     hard_coral_count = models.IntegerField(null=True, blank=True)
     hard_coral_name = models.CharField(max_length=50, null=True, blank=True)
-    
+
     seabed_depression = models.FloatField(null=True, blank=True)
     seabed_low_slope = models.FloatField(null=True, blank=True)
     seabed_steep = models.FloatField(null=True, blank=True)
@@ -551,32 +551,32 @@ class LeaseBlock(models.Model):
     seabed_high_flat = models.FloatField(null=True, blank=True)
     seabed_high_slope = models.FloatField(null=True, blank=True)
     seabed_total = models.FloatField(null=True, blank=True)
-    
+
     discharge_min_distance = models.FloatField(null=True, blank=True)
     discharge_max_distance = models.FloatField(null=True, blank=True)
     discharge_mean_distance = models.FloatField(null=True, blank=True)
     discharge_flow_min_distance = models.FloatField(null=True, blank=True)
     discharge_flow_max_distance = models.FloatField(null=True, blank=True)
     discharge_flow_mean_distance = models.FloatField(null=True, blank=True)
-    
+
     dredge_site = models.IntegerField(null=True, blank=True)
-    
+
     wpa = models.IntegerField(null=True, blank=True)
     wpa_name = models.CharField(max_length=75, null=True, blank=True)
-    
+
     shipwreck_density = models.IntegerField(null=True, blank=True)
-    
+
     uxo = models.IntegerField(null=True, blank=True)
-    
+
     substation_min_distance = models.FloatField(null=True, blank=True)
     substation_max_distance = models.FloatField(null=True, blank=True)
     substation_mean_distance = models.FloatField(null=True, blank=True)
-    
+
     marco_region = models.IntegerField(null=True, blank=True)
-    
+
     geometry = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Lease Block Geometry")
     #geometry_client = models.MultiPolygonField(srid=settings.GEOMETRY_CLIENT_SRID, null=True, blank=True, verbose_name="Lease Block Client Geometry")
-    objects = models.GeoManager()   
+    objects = models.GeoManager()
 
     @property
     def avg_wind_speed(self):
@@ -591,51 +591,51 @@ class LeaseBlock(models.Model):
             return Substrate.objects.get(substrate_id=self.majority_seabed).substrate_name
         except:
             return 'Unknown'
-        
+
     @property
     def sediment(self):
         try:
             return Sediment.objects.get(sediment_name=self.majority_sediment).sediment_output
         except:
             return 'Unknown'
-        
+
     @property
     def wea_label(self):
         if self.wea_name is None:
             return ""
         else:
             return "Wind Energy Area: "
-        
+
     @property
     def wea_state_name(self):
         if self.wea_name is None:
             return ""
         else:
             return self.wea_name
-        
+
     @property
     def wind_speed_output(self):
         if self.min_wind_speed == self.max_wind_speed:
             return "%.1f mph" % (mps_to_mph(self.min_wind_speed))
         else:
-            return "%.1f - %.1f mph" % (mps_to_mph(self.min_wind_speed), 
+            return "%.1f - %.1f mph" % (mps_to_mph(self.min_wind_speed),
                                         mps_to_mph(self.max_wind_speed))
-     
+
     @property
     def ais_density(self):
         if self.ais_all_vessels_maj <= 1:
             return 'Low'
         else:
             return 'Moderate/High'
-     
+
     @property
     def depth_range_output(self):
         if self.min_depth == self.max_depth:
             return "$.0f meters" % (-self.min_depth)
         else:
-            return "%.0f - %.0f meters" % (-self.min_depth, -self.max_depth)     
-        
-    @property 
+            return "%.0f - %.0f meters" % (-self.min_depth, -self.max_depth)
+
+    @property
     def kml_done(self):
         return """
         <Placemark id="%s">
@@ -645,31 +645,31 @@ class LeaseBlock(models.Model):
         </Placemark>
         """ % ( self.uid, self.model_uid(),
                 asKml(self.geometry.transform( settings.GEOMETRY_CLIENT_SRID, clone=True ))
-              )        
-       
+              )
+
 #still needed?
 class Substrate(models.Model):
     substrate_id = models.IntegerField()
     substrate_name = models.CharField(max_length=35)
     substrate_shortname = models.CharField(max_length=35)
-    
+
     def __unicode__(self):
         return u'%s' % self.substrate_name
-#still needed?     
+#still needed?
 class Sediment(models.Model):
     sediment_id = models.IntegerField()
     sediment_name = models.CharField(max_length=35)
     sediment_output = models.CharField(max_length=55)
     sediment_shortname = models.CharField(max_length=35)
-    
+
     def __unicode__(self):
         return u'%s' % self.sediment_output
-#still needed?     
+#still needed?
 class WEA(models.Model):
     wea_id = models.IntegerField()
     wea_name = models.CharField(max_length=35)
     wea_shortname = models.CharField(max_length=35)
-    
+
     def __unicode__(self):
         return u'%s' % self.wea_name
 
@@ -679,7 +679,7 @@ class LeaseBlockSelection(Analysis):
     description = models.TextField(null=True, blank=True)
     geometry_actual = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID,
         null=True, blank=True, verbose_name="Lease Block Selection Geometry")
-    
+
     def serialize_attributes(self):
         blocks = LeaseBlock.objects.filter(prot_numb__in=self.leaseblock_ids.split(','))
 
@@ -784,27 +784,27 @@ class LeaseBlockSelection(Analysis):
         return {'event': 'click',
                 'attributes': attributes,
                 'report_values': report_values}
-    
+
     @staticmethod
     def reduce(func, data, digits=None, filter_null=True, handle_none='Unknown', offset=None):
         """
         self.reduce: LeaseBlock's custom reduce
-        why not the built-in reduce()? 
+        why not the built-in reduce()?
             handles rounding, null values, practical defaults.
 
         Input:
             func : function that aggregates data to a single value
             data : list of values
-        Returns: a single value or a sensible default 
+        Returns: a single value or a sensible default
                  with some presentation logic intermingled
 
         In the case of `None` in your list,
         you can either filter them out with `filter_null` (default) or
-        you can bail and use `handle_none` 
+        you can bail and use `handle_none`
             which either raises an exception or returns a default "null" value
 
-        Rounding and offsetting by constant values are also handled 
-        for backwards compatibility. 
+        Rounding and offsetting by constant values are also handled
+        for backwards compatibility.
         """
         if filter_null:
             # Filter the incoming data to remove "nulls"
@@ -829,7 +829,7 @@ class LeaseBlockSelection(Analysis):
             agg = round(agg, digits)
 
         return agg
-    
+
     def run(self):
         leaseblocks = LeaseBlock.objects.filter(prot_numb__in=self.leaseblock_ids.split(','))
 
@@ -851,14 +851,14 @@ class LeaseBlockSelection(Analysis):
             self.geometry_actual = dissolved_geom
         else:
             self.geometry_actual = MultiPolygon(dissolved_geom, srid=dissolved_geom.srid)
-        return True  
-    
+        return True
+
     def geojson(self, srid):
         props = get_properties_json(self)
         props['absolute_url'] = self.get_absolute_url()
         json_geom = self.geometry_actual.transform(srid, clone=True).json
         return get_feature_json(json_geom, json.dumps(props))
-    
+
     class Options:
         verbose_name = 'Lease Block Selection'
         form = 'scenarios.forms.LeaseBlockSelectionForm'

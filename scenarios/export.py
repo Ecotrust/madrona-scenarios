@@ -1,17 +1,16 @@
 import datetime
-from django.contrib.gis.models import SpatialRefSys
+from django.contrib.gis.gdal import SpatialReference
 import shapefile
 import io
 import zipfile
 
 def get_shp_projection(srid):
     try:
-        s = SpatialRefSys.objects.get(srid=srid)
+        s = SpatialReference(srid)
     except SpatialRefSys.DoesNotExist:
         return None
 
-    return s.srtext
-
+    return s.wkt
 
 def zip_objects(items, compress_type=zipfile.ZIP_DEFLATED):
     """Given an array of items, write them all to a zip file (stored in memory).
@@ -95,8 +94,13 @@ def geometries_to_shp(base_name, geom_attrs, srid=4326):
         float: {"fieldType": "N", "size": "18", "decimal": 4},
         datetime: {"fieldType": "D", "size": 8},
     }
-    type_map[unicode] = type_map[str]
-    for name, field_type in field_data.iteritems():
+    try:
+        str_or_unicode = unicode
+        type_map[str_or_unicode] = type_map[str]
+    except NameError:
+        str_or_unicode = str
+
+    for name, field_type in field_data.items():
         args = type_map[type(field_type)]
         args['name'] = name
         writer.field(**args)
@@ -108,7 +112,8 @@ def geometries_to_shp(base_name, geom_attrs, srid=4326):
         float: lambda s: '%.4f' % s,
         datetime: lambda s: s.strftime('%Y%m%d'),
     }
-    field_transform[unicode] = field_transform[str]
+    if not str_or_unicode == str:
+        field_transform[str_or_unicode] = field_transform[str]
 
     geometry = geom_attrs[0][0]
     if not srid:
@@ -119,16 +124,18 @@ def geometries_to_shp(base_name, geom_attrs, srid=4326):
             geometry = geometry.transform(srid, clone=True)
 
         transformed_attrs = dict((k, field_transform[type(v)](v))
-                         for k, v in attrs.iteritems())
+                         for k, v in attrs.items())
 
-        if len(geometry) > 1:
-            # Multipolygon; shapefiles apparently support polygons with multiple
-            # exterior rings, but pyshp doesn't know how to write multipolygons
-            for poly in geometry:
+        import json
+        coord_list = json.loads(geometry.geojson)['coordinates']
+        # Multipolygon; shapefiles apparently support polygons with multiple
+        # exterior rings, but pyshp doesn't know how to write multipolygons
+        if isinstance(coord_list[0][0], list) and isinstance(coord_list[0][0][0], list):
+            for poly in coord_list:
                 writer.poly(parts=poly)
                 writer.record(**transformed_attrs)
         else:
-            writer.poly(parts=geometry)
+            writer.poly(parts=coord_list)
             writer.record(**transformed_attrs)
 
     writer.saveShp(shp_bytes)

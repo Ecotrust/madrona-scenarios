@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Permission
 admin.site.register(Permission)
 
-from models import *
+from .models import *
 
 from django.contrib.gis import admin as geoadmin
 geoadmin.site.register(LeaseBlock)
@@ -13,7 +13,7 @@ class ScenarioAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'user', 'active', 'date_created', 'date_modified')
     list_filter = ['date_modified', 'date_created']
     search_fields = ('name', 'user__username', 'id')
-    fields = ['name', 'active', 'description', 'user']#, 'input_objectives', 'support_file'] 
+    fields = ['name', 'active', 'description', 'user']#, 'input_objectives', 'support_file']
     #NOTE:  can't do 'input_parameters' because it manually specifies a 'through' model ('ScenarioParameters')
 admin.site.register(Scenario, ScenarioAdmin)
 
@@ -42,6 +42,3 @@ class WEAAdmin(admin.ModelAdmin):
     list_display = ('wea_name', 'wea_shortname', 'wea_id')
     fields = ['wea_id', 'wea_name', 'wea_shortname']
 admin.site.register(WEA, WEAAdmin)
-
-
-
