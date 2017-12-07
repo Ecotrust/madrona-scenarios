@@ -6,8 +6,8 @@ admin.site.register(Permission)
 from .models import *
 
 from django.contrib.gis import admin as geoadmin
-geoadmin.site.register(LeaseBlock)
-geoadmin.site.register(LeaseBlockSelection)
+geoadmin.site.register(PlanningUnit)
+geoadmin.site.register(PlanningUnitSelection)
 
 class ScenarioAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'user', 'active', 'date_created', 'date_modified')
@@ -17,28 +17,28 @@ class ScenarioAdmin(admin.ModelAdmin):
     #NOTE:  can't do 'input_parameters' because it manually specifies a 'through' model ('ScenarioParameters')
 admin.site.register(Scenario, ScenarioAdmin)
 
-class ObjectiveAdmin(admin.ModelAdmin):
-    list_display = ('name', 'pk')
-    fields = ['name', 'color']
-admin.site.register(Objective, ObjectiveAdmin)
+# class ObjectiveAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'pk')
+#     fields = ['name', 'color']
+# admin.site.register(Objective, ObjectiveAdmin)
 
-class ParameterAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ordering_id', 'shortname', 'id')
-    ordering = ('ordering_id',)
-    fields = ['ordering_id', 'name', 'shortname', 'objectives']
-admin.site.register(Parameter, ParameterAdmin)
+# class ParameterAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'ordering_id', 'shortname', 'id')
+#     ordering = ('ordering_id',)
+#     fields = ['ordering_id', 'name', 'shortname', 'objectives']
+# admin.site.register(Parameter, ParameterAdmin)
 
-class SubstrateAdmin(admin.ModelAdmin):
-    list_display = ('substrate_name', 'substrate_shortname', 'substrate_id')
-    fields = ['substrate_id', 'substrate_name', 'substrate_shortname']
-admin.site.register(Substrate, SubstrateAdmin)
-
-class SedimentAdmin(admin.ModelAdmin):
-    list_display = ('sediment_output', 'sediment_name', 'sediment_shortname', 'sediment_id')
-    fields = ['sediment_output', 'sediment_id', 'sediment_name', 'sediment_shortname']
-admin.site.register(Sediment, SedimentAdmin)
-
-class WEAAdmin(admin.ModelAdmin):
-    list_display = ('wea_name', 'wea_shortname', 'wea_id')
-    fields = ['wea_id', 'wea_name', 'wea_shortname']
-admin.site.register(WEA, WEAAdmin)
+# class SubstrateAdmin(admin.ModelAdmin):
+#     list_display = ('substrate_name', 'substrate_shortname', 'substrate_id')
+#     fields = ['substrate_id', 'substrate_name', 'substrate_shortname']
+# admin.site.register(Substrate, SubstrateAdmin)
+#
+# class SedimentAdmin(admin.ModelAdmin):
+#     list_display = ('sediment_output', 'sediment_name', 'sediment_shortname', 'sediment_id')
+#     fields = ['sediment_output', 'sediment_id', 'sediment_name', 'sediment_shortname']
+# admin.site.register(Sediment, SedimentAdmin)
+#
+# class WEAAdmin(admin.ModelAdmin):
+#     list_display = ('wea_name', 'wea_shortname', 'wea_id')
+#     fields = ['wea_id', 'wea_name', 'wea_shortname']
+# admin.site.register(WEA, WEAAdmin)

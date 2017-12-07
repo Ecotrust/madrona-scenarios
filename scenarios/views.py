@@ -7,15 +7,20 @@ from json import dumps
 from nursery.geojson.geojson import srid_to_urn, get_feature_json
 
 from django.http import HttpResponse, Http404, StreamingHttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from scenarios.export import geometries_to_shp, create_metadata_xml, zip_objects
 
-from scenarios.models import Scenario, LeaseBlockSelection, LeaseBlock
+from scenarios.models import Scenario, PlanningUnitSelection, PlanningUnit
 from django.conf import settings
 import json
 
+
+def demo(request, template='scenarios/demo.html'):
+    context = {}
+
+    return render(request, template, context)
 
 def sdc_analysis(request, sdc_id):
     from sdc_analysis import display_sdc_analysis
@@ -113,7 +118,7 @@ def get_scenarios(request):
 @login_required()
 def get_selections(request):
     json = []
-    selections = LeaseBlockSelection.objects.filter(user=request.user).order_by('date_created')
+    selections = PlanningUnitSelection.objects.filter(user=request.user).order_by('date_created')
     for selection in selections:
         sharing_groups = [group.mapgroup_set.get().name
                           for group in selection.sharing_groups.all()
@@ -127,7 +132,7 @@ def get_selections(request):
             'sharing_groups': sharing_groups
         })
 
-    shared_selections = LeaseBlockSelection.objects.shared_with_user(request.user)
+    shared_selections = PlanningUnitSelection.objects.shared_with_user(request.user)
     for selection in shared_selections:
         if selection not in selections:
             username = selection.user.username
@@ -147,17 +152,17 @@ def get_selections(request):
 
 '''
 '''
-def get_leaseblock_features(request):
+def get_planningunit_features(request):
     srid = settings.GEOJSON_SRID
-    leaseblock_ids = request.GET.getlist('leaseblock_ids[]')
-    leaseblocks = LeaseBlock.objects.filter(prot_numb__in=leaseblock_ids)
+    planningunit_ids = request.GET.getlist('planningunit_ids[]')
+    planningunits = PlanningUnit.objects.filter(prot_numb__in=planningunit_ids)
     feature_jsons = []
-    for leaseblock in leaseblocks:
+    for planningunit in planningunits:
         try:
-            geom = leaseblock.geometry.transform(srid, clone=True).json
+            geom = planningunit.geometry.transform(srid, clone=True).json
         except:
             srid = settings.GEOJSON_SRID_BACKUP
-            geom = leaseblock.geometry.transform(srid, clone=True).json
+            geom = planningunit.geometry.transform(srid, clone=True).json
         feature_jsons.append(get_feature_json(geom, json.dumps('')))#json.dumps(props)))
         #feature_jsons.append(leaseblock.geometry.transform(srid, clone=True).json)
         '''
@@ -165,7 +170,7 @@ def get_leaseblock_features(request):
           "type": "Feature",
           "geometry": %s,
           "properties": {}
-        }""" %leaseblock.geometry.transform(settings.GEOJSON_SRID, clone=True).json
+        }""" %planningunit.geometry.transform(settings.GEOJSON_SRID, clone=True).json
         '''
         #json.append({'type': "Feature", 'geometry': leaseblock.geometry.geojson, 'properties': {}})
     #return HttpResponse(dumps(json[0]))
@@ -212,36 +217,37 @@ def share_design(request):
 
 '''
 '''
-@cache_page(60 * 60 * 24, key_prefix="scenarios_get_leaseblocks")
-def get_leaseblocks(request):
+@cache_page(60 * 60 * 24, key_prefix="scenarios_get_planningunits")
+def get_planningunits(request):
     json = []
-    leaseblocks = LeaseBlock.objects.filter(avg_depth__lt=0.0, min_wind_speed_rev__isnull=False)
-    for ocs_block in leaseblocks:
+    # planningunits = PlanningUnit.objects.filter(avg_depth__lt=0.0, min_wind_speed_rev__isnull=False)
+    planningunits = PlanningUnit.objects.all()
+    for p_unit in planningunits:
         json.append({
-            'id': ocs_block.id,
-            #'ais_density': ocs_block.ais_density,
-            #'ais_min_density': ocs_block.ais_min_density,
-            #'ais_max_density': ocs_block.ais_max_density,
-            'ais_mean_density': ocs_block.ais_all_vessels_maj,
-            #'min_distance': ocs_block.min_distance,
-            #'max_distance': ocs_block.max_distance,
-            'avg_distance': ocs_block.avg_distance,
-            'awc_min_distance': ocs_block.awc_min_distance,
-            'substation_min_distance': ocs_block.substation_min_distance,
-            #'awc_max_distance': ocs_block.awc_max_distance,
-            #'awc_avg_distance': ocs_block.awc_avg_distance,
-            'avg_depth': -ocs_block.avg_depth,
-            #'min_depth': meters_to_feet(-ocs_block.min_depth, 1),
-            #'max_depth': meters_to_feet(-ocs_block.max_depth, 1),
-            'min_wind_speed': ocs_block.min_wind_speed_rev,
-            #'max_wind_speed': ocs_block.max_wind_speed_rev,
-            'tsz_min_distance': ocs_block.tsz_min_distance,
-            #'tsz_max_distance': ocs_block.tsz_max_distance,
-            #'tsz_mean_distance': ocs_block.tsz_mean_distance,
-            #'wea_name': ocs_block.wea_name,
-            #'wea_number': ocs_block.wea_number,
-            #'wea_state_name': ocs_block.wea_state_name
-            'uxo': ocs_block.uxo
+            'id': p_unit.id,
+            #'ais_density': p_unit.ais_density,
+            #'ais_min_density': p_unit.ais_min_density,
+            #'ais_max_density': p_unit.ais_max_density,
+            # 'ais_mean_density': p_unit.ais_all_vessels_maj,
+            #'min_distance': p_unit.min_distance,
+            #'max_distance': p_unit.max_distance,
+            # 'avg_distance': p_unit.avg_distance,
+            # 'awc_min_distance': p_unit.awc_min_distance,
+            # 'substation_min_distance': p_unit.substation_min_distance,
+            #'awc_max_distance': p_unit.awc_max_distance,
+            #'awc_avg_distance': p_unit.awc_avg_distance,
+            # 'avg_depth': -p_unit.avg_depth,
+            #'min_depth': meters_to_feet(-p_unit.min_depth, 1),
+            #'max_depth': meters_to_feet(-p_unit.max_depth, 1),
+            # 'min_wind_speed': p_unit.min_wind_speed_rev,
+            #'max_wind_speed': p_unit.max_wind_speed_rev,
+            # 'tsz_min_distance': p_unit.tsz_min_distance,
+            # 'tsz_max_distance': p_unit.tsz_max_distance,
+            #'tsz_mean_distance': p_unit.tsz_mean_distance,
+            #'wea_name': p_unit.wea_name,
+            #'wea_number': p_unit.wea_number,
+            #'wea_state_name': p_unit.wea_state_name
+            # 'uxo': p_unit.uxo
         })
     return HttpResponse(dumps(json))
 
@@ -273,7 +279,7 @@ class GeometryExporter(View):
 
         # Even though the three objects are all subclasses of feature, they
         # all have different names for the variable that they store geometry in.
-        # AOIs have "geometry_final", LeaseBlockSelections have 'geometry_actual'
+        # AOIs have "geometry_final", PlanningUnitSelections have 'geometry_actual'
         # and Wind energy ("Scenario") has geometry_dissolved.
         # Write a quick function to keep trying until it finds the right
         # attribute name.

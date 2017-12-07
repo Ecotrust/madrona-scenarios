@@ -2,26 +2,26 @@
     <script type="text/javascript" charset="utf-8">
 
         madrona.onShow(function(){
-            madrona.setupForm($('#leaseblock-selection-form'));
+            madrona.setupForm($('#planningunit-selection-form'));
 
             var step = 1;
             var max_step = 2;
 
             function validate(step) {
                 if (step == 1) {
-                    if ( app.viewModel.scenarios.selectionFormModel.leaseBlockSelectionLayer.layer &&
-                         app.viewModel.scenarios.selectionFormModel.leaseBlockSelectionLayer.layer.selectedFeatures.length ) {
+                    if ( app.viewModel.scenarios.selectionFormModel.planningUnitSelectionLayer.layer &&
+                         app.viewModel.scenarios.selectionFormModel.planningUnitSelectionLayer.layer.selectedFeatures.length ) {
                         //end selection process
                         app.viewModel.scenarios.selectionFormModel.disableSelectionProcess();
-                        //toggle off lease block layer
-                        if (app.viewModel.scenarios.selectionFormModel.leaseBlockLayer.active()) {
-                            app.viewModel.scenarios.selectionFormModel.leaseBlockLayer.deactivateLayer();
+                        //toggle off planning unit layer
+                        if (app.viewModel.scenarios.selectionFormModel.planningUnitLayer.active()) {
+                            app.viewModel.scenarios.selectionFormModel.planningUnitLayer.deactivateLayer();
                         }
                         return true;
                     } else if ( app.viewModel.scenarios.selectionFormModel.edit &&
-                                ! app.viewModel.scenarios.selectionFormModel.leaseBlockSelectionLayer.layer ) {
+                                ! app.viewModel.scenarios.selectionFormModel.planningUnitSelectionLayer.layer ) {
                         return true;
-                    } else if ( app.viewModel.scenarios.selectionFormModel.selectingLeaseBlocks() ) {
+                    } else if ( app.viewModel.scenarios.selectionFormModel.selectingPlanningUnits() ) {
                         $('#selection-instructions').effect("highlight", {}, 1000);
                     } else {
                         $('#click-button-to-select').effect("highlight", {}, 1000);
@@ -40,7 +40,7 @@
                     step += 1;
                 } else if (step > 1 && action == 'prev') {
                     step -= 1;
-                    app.viewModel.scenarios.selectionFormModel.leaseBlockLayer.activateLayer();
+                    app.viewModel.scenarios.selectionFormModel.planningUnitLayer.activateLayer();
                 }
                 $('div.step').each(function(index) {
                     $(this).hide();
@@ -93,9 +93,9 @@
     </script>
 
     <h4>
-        Lease Block Selection
+        Planning Unit Selection
     </h4>
-    <form id="leaseblock-selection-form" action="{{action}}" method="post">
+    <form id="planningunit-selection-form" action="{{action}}" method="post">
       {% for hidden in form.hidden_fields %}
         <div style="display:none;">
             {{ hidden.errors }}
@@ -107,33 +107,33 @@
       <div id="step1" class="step">
         <p class="step-text"><i>Step 1 of 2 </i></p>
         <p id="click-button-to-select" class="instructions">Click the button
-            below to begin selecting your Lease Blocks from the map on the
+            below to begin selecting your Planning Units from the map on the
             right.</p>
 
-        {{ form.leaseblock_ids.as_hidden }}
+        {{ form.planningunit_ids.as_hidden }}
 
           <div class="btn-group">
 
         <a class="btn btn-warning" style="margin-top: 10px" data-bind="click: toggleSelectionProcess">
-            <span data-bind="text: selectingLeaseBlocks() ? 'Complete Selection' : 'Select Lease Blocks'"></span>
+            <span data-bind="text: selectingPlanningUnits() ? 'Complete Selection' : 'Select Planning Units'"></span>
         </a>
 
-            <label class="btn btn-default" id="lease-blocks-layer-toggle" data-bind="click: toggleLeaseBlockLayer">
-                <input id="lease-blocks-layer-checkbox"
-                       data-bind="checked: leaseBlockLayer.active()"
+            <label class="btn btn-default" id="planning-units-layer-toggle" data-bind="click: togglePlanningUnitLayer">
+                <input id="planning-units-layer-checkbox"
+                       data-bind="checked: planningUnitLayer.active()"
                        type="checkbox" name="checkbox" value="value">
-                Show OCS Lease Blocks</input>
+                Show Planning Units</input>
             </label>
         </div>
 
         <div style="padding-top: 20px" >
-            <div data-bind="visible: selectingLeaseBlocks()" class="well">
+            <div data-bind="visible: selectingPlanningUnits()" class="well">
                 <div id="selection-instructions">
                     <div>
-                        Click individual lease blocks to select or deselect.
+                        Click individual planning units to select or deselect.
                     </div>
                     <div style="padding-top: 10px">
-                        Alternatively, hold the left mouse button down while dragging over the lease blocks you wish to select.
+                        Alternatively, hold the left mouse button down while dragging over the planning units you wish to select.
                     </div>
                 </div>
                 <div style="padding-top: 10px">
