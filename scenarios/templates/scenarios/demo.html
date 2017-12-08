@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Simple Map</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://openlayers.org/en/v4.6.1/css/ol.css" type="text/css">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
@@ -10,10 +11,16 @@
   <body>
     <div id="map" class="map"></div>
     <script>
+      var planningUnitSource = new ol.source.Vector({
+        features: []
+      });
       var map = new ol.Map({
         layers: [
           new ol.layer.Tile({
             source: new ol.source.OSM()
+          }),
+          new ol.layer.Vector({
+            source: planningUnitSource
           })
         ],
         target: 'map',
@@ -22,6 +29,38 @@
           zoom: 2
         })
       });
+
+      // var wkt = 'POLYGON((10.689 -25.092, 34.595 ' +
+      //     '-20.170, 38.814 -35.639, 13.502 ' +
+      //     '-39.155, 10.689 -25.092))';
+
+      var wktFormat = new ol.format.WKT();
+
+      // var feature = wktFormat.readFeature(wkt, {
+      //   dataProjection: 'EPSG:4326',
+      //   featureProjection: 'EPSG:3857'
+      // });
+
+      // planningUnitSource.addFeature(feature);
+
+      $.ajax({
+        url: '/get_planningunits',
+        type: 'GET',
+        dataType: 'json'
+      })
+      .done(function(features) {
+        for(var i = 0; i < features.length; i++) {
+          feature = wktFormat.readFeature(features[i].wkt, {
+              dataProjection: 'EPSG:3857',
+              featureProjection: 'EPSG:3857'
+          });
+          planningUnitSource.addFeature(feature);
+        }
+      })
+      .fail(function() {
+        alert("error");
+      });
+
     </script>
   </body>
 </html>

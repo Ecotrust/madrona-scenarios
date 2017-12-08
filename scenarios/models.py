@@ -109,7 +109,7 @@ class Scenario(Analysis):
         #     attributes.append({'title': 'Excluding Areas with Moderate or High Ship Traffic', 'data': ''})
         # if self.input_filter_uxo:
         #     attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
-        # attributes.append({'title': 'Number of Leaseblocks', 'data': self.lease_blocks.count(',')+1})
+        attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
         return { 'event': 'click', 'attributes': attributes }
 
 
@@ -343,7 +343,7 @@ class Scenario(Analysis):
             combined_kml_list.append('<Folder id="%s"><name>%s</name><visibility>0</visibility><open>0</open>' %(self.uid, self.name))
         combined_kml_list.append('<LookAt><longitude>-73.5</longitude><latitude>39</latitude><heading>0</heading><range>600000</range></LookAt>')
         combined_kml_list.append('<styleUrl>#%s-default</styleUrl>' % (self.model_uid()))
-        combined_kml_list.append('%s' % self.leaseblock_style())
+        combined_kml_list.append('%s' % self.planningunit_style())
         print('Generating KML for %s Planning Units' % len(planningunit_ids))
         start_time = time.time()
         planningunits = PlanningUnit.objects.filter(pk__in=planningunit_ids)
@@ -592,8 +592,8 @@ class PlanningUnit(models.Model):
     #
     # marco_region = models.IntegerField(null=True, blank=True)
 
-    geometry = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Lease Block Geometry")
-    #geometry_client = models.MultiPolygonField(srid=settings.GEOMETRY_CLIENT_SRID, null=True, blank=True, verbose_name="Lease Block Client Geometry")
+    geometry = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Planning Unit Geometry")
+    #geometry_client = models.MultiPolygonField(srid=settings.GEOMETRY_CLIENT_SRID, null=True, blank=True, verbose_name="Planning Unit Client Geometry")
     objects = models.GeoManager()
 
     # @property

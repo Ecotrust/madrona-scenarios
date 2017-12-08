@@ -97,11 +97,11 @@ class ScenarioForm(FeatureForm):
 
     # input_filter_distance_to_shipping = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
     # input_distance_to_shipping = forms.FloatField(  min_value=1, max_value=10, initial=3,
-                                                    widget=SliderWidget( min=1,max=10,step=1 ),
-                                                    required=False)
+                                                    # widget=SliderWidget( min=1,max=10,step=1 ),
+                                                    # required=False)
 
     # input_filter_uxo = forms.BooleanField(widget=CheckboxInput(attrs={'class': 'filters'}),
-                                          required=False)
+                                        #   required=False)
 
 
     # NON-ACTIVATED FORM ELEMENTS
@@ -119,7 +119,7 @@ class ScenarioForm(FeatureForm):
         if commit:
             inst.save()
         return inst
-    
+
     class Meta(FeatureForm.Meta):
         model = Scenario
         exclude = list(FeatureForm.Meta.exclude)

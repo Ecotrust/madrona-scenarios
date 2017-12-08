@@ -225,6 +225,7 @@ def get_planningunits(request):
     for p_unit in planningunits:
         json.append({
             'id': p_unit.id,
+            'wkt': p_unit.geometry.wkt,
             #'ais_density': p_unit.ais_density,
             #'ais_min_density': p_unit.ais_min_density,
             #'ais_max_density': p_unit.ais_max_density,
