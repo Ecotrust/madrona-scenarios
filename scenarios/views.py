@@ -18,7 +18,15 @@ import json
 
 
 def demo(request, template='scenarios/demo.html'):
-    context = {}
+    try:
+        from core_app import project_settings as settings
+        context = {
+            'GET_SCENARIOS_URL': settings.GET_SCENARIOS_URL,
+            'SCENARIO_FORM_URL': settings.SCENARIO_FORM_URL,
+            'SCENARIO_LINK_BASE': settings.SCENARIO_LINK_BASE
+        }
+    except:
+        context = {}
 
     return render(request, template, context)
 
@@ -79,10 +87,10 @@ def delete_design(request, uid):
     return HttpResponse("", status=200)
 
 @login_required()
-def get_scenarios(request):
+def get_scenarios(request, scenario_model=Scenario):
     json = []
 
-    scenarios = Scenario.objects.filter(user=request.user, active=True).order_by('date_created')
+    scenarios = scenario_model.objects.filter(user=request.user, active=True).order_by('date_created')
     for scenario in scenarios:
         # Allow for "sharing groups" without an associated MapGroup, for "special" cases
         sharing_groups = [group.mapgroup_set.get().name

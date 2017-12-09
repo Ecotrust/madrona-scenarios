@@ -109,7 +109,8 @@ class Scenario(Analysis):
         #     attributes.append({'title': 'Excluding Areas with Moderate or High Ship Traffic', 'data': ''})
         # if self.input_filter_uxo:
         #     attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
-        attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
+        if self.planning_units:
+            attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
         return { 'event': 'click', 'attributes': attributes }
 
 
@@ -192,41 +193,47 @@ class Scenario(Analysis):
         return True
 
     def save(self, rerun=None, *args, **kwargs):
-        if rerun is None and self.pk is None:
-            rerun = True
-        if rerun is None and self.pk is not None: #if editing a scenario and no value for rerun is given
-            # rerun = False
-            # if not rerun:
-            orig = Scenario.objects.get(pk=self.pk)
-
-            rerun = True
-
-            # if not rerun:
-            #     for f in Scenario.input_fields():
-            #         # Is original value different from form value?
-            #         if getattr(orig, f.name) != getattr(self, f.name):
-            #             #print('input_field, %s, has changed' %f.name)
-            #             rerun = True
-            #             break
-            # if not rerun:
-            #     '''
-            #         the substrates need to be grabbed, then saved, then grabbed again because
-            #         both getattr calls (orig and self) return the same original list until the model has been saved
-            #         (perhaps because form.save_m2m has to be called), after which calls to getattr will
-            #         return the same list (regardless of whether we use orig or self)
-            #     '''
-            #     orig_weas = set(getattr(self, 'input_wea').all())
-            #     orig_substrates = set(getattr(self, 'input_substrate').all())
-            #     orig_sediments = set(getattr(self, 'input_sediment').all())
-            #     super(Scenario, self).save(rerun=False, *args, **kwargs)
-            #     new_weas = set(getattr(self, 'input_wea').all())
-            #     new_substrates = set(getattr(self, 'input_substrate').all())
-            #     new_sediments = set(getattr(self, 'input_sediment').all())
-            #     if orig_substrates != new_substrates or orig_sediments != new_sediments or orig_weas != new_weas:
-            #         rerun = True
-            super(Scenario, self).save(rerun=rerun, *args, **kwargs)
-        else: #editing a scenario and rerun is provided
-            super(Scenario, self).save(rerun=rerun, *args, **kwargs)
+        super(Scenario, self).save(*args, **kwargs)
+        # if rerun is None and self.pk is None:
+        #     rerun = True
+        # if rerun is None and self.pk is not None: #if editing a scenario and no value for rerun is given
+        #     rerun = False
+        #     if not rerun:
+        #         # try:
+        #         #     self.save()
+        #         #     orig = Scenario.objects.get(pk=self.pk)
+        #         # except:
+        #         #     import ipdb
+        #         #     ipdb.set_trace()
+        #
+        #         rerun = True
+        #
+        #         # if not rerun:
+        #         #     for f in Scenario.input_fields():
+        #         #         # Is original value different from form value?
+        #         #         if getattr(orig, f.name) != getattr(self, f.name):
+        #         #             #print('input_field, %s, has changed' %f.name)
+        #         #             rerun = True
+        #         #             break
+        #         # if not rerun:
+        #         #     '''
+        #         #         the substrates need to be grabbed, then saved, then grabbed again because
+        #         #         both getattr calls (orig and self) return the same original list until the model has been saved
+        #         #         (perhaps because form.save_m2m has to be called), after which calls to getattr will
+        #         #         return the same list (regardless of whether we use orig or self)
+        #         #     '''
+        #         #     orig_weas = set(getattr(self, 'input_wea').all())
+        #         #     orig_substrates = set(getattr(self, 'input_substrate').all())
+        #         #     orig_sediments = set(getattr(self, 'input_sediment').all())
+        #         #     super(Scenario, self).save(rerun=False, *args, **kwargs)
+        #         #     new_weas = set(getattr(self, 'input_wea').all())
+        #         #     new_substrates = set(getattr(self, 'input_substrate').all())
+        #         #     new_sediments = set(getattr(self, 'input_sediment').all())
+        #         #     if orig_substrates != new_substrates or orig_sediments != new_sediments or orig_weas != new_weas:
+        #         #         rerun = True
+        #     super(Scenario, self).save(rerun=rerun, *args, **kwargs)
+        # else: #editing a scenario and rerun is provided
+        #     super(Scenario, self).save(rerun=rerun, *args, **kwargs)
 
     def __unicode__(self):
         return u'%s' % self.name

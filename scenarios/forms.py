@@ -4,8 +4,8 @@ from django.forms import ModelMultipleChoiceField, CheckboxSelectMultiple
 from django.forms.widgets import *
 from os.path import splitext
 from analysistools.widgets import SliderWidget, DualSliderWidget
-from models import *
-from widgets import AdminFileWidget, SliderWidgetWithTooltip, DualSliderWidgetWithTooltip, CheckboxSelectMultipleWithTooltip, CheckboxSelectMultipleWithObjTooltip
+from scenarios.models import *
+from scenarios.widgets import AdminFileWidget, SliderWidgetWithTooltip, DualSliderWidgetWithTooltip, CheckboxSelectMultipleWithTooltip, CheckboxSelectMultipleWithObjTooltip
 
 # WEA_CHOICES = ( ('constrain', 'Constrain the result to the following WEAs'), ('exclude', 'Exclude the following WEAs') )
 
