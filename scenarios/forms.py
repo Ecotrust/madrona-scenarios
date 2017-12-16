@@ -33,84 +33,54 @@ class ValidFileField(forms.FileField):
 class ScenarioForm(FeatureForm):
     description = forms.CharField(widget=forms.Textarea(attrs={'cols': 30, 'rows': 3}), required=False)
 
+    #RDH Generic updates 12/15/2017: I have no idea if we need this, but it isn't hurting anything (yet).
     support_file = ValidFileField(widget=AdminFileWidget,required=False,label="Support File")
-    #could optionally add a param similar to the following:  help_text="(e.g. a pdf or text document that explains this scenario)"
 
-    # GeoPhysical
+    def get_step_0_fields(self):
+        names = ()
+        return self._get_fields(names)
 
-    # input_parameter_depth = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_min_depth = forms.FloatField(initial=10, widget=forms.TextInput(attrs={'class':'slidervalue'}))
-    # input_max_depth = forms.FloatField(initial=50, widget=forms.TextInput(attrs={'class':'slidervalue'}))
-    # input_depth = forms.FloatField( widget=DualSliderWidget('input_min_depth','input_max_depth',
-    #                                                         min=10,max=100,step=5),
-    #                                 required=False)
-    #
-    # input_parameter_distance_to_shore = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_min_distance_to_shore = forms.FloatField(initial=12, widget=forms.TextInput(attrs={'class':'slidervalue'}))
-    # input_max_distance_to_shore = forms.FloatField(initial=50, widget=forms.TextInput(attrs={'class':'slidervalue'}))
-    # input_distance_to_shore = forms.FloatField( widget=DualSliderWidget('input_min_distance_to_shore','input_max_distance_to_shore',
-    #                                                                     min=3,max=100,step=1),
-    #                                             required=False)
-    #
-    # input_parameter_substrate = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_substrate = ModelMultipleChoiceField( queryset=Substrate.objects.all().order_by('substrate_id'),
-    #                                             widget=CheckboxSelectMultiple(attrs={'class':'substrate_checkboxes'}),
-    #                                             required=False)
-    #
-    # input_parameter_sediment = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_sediment = ModelMultipleChoiceField(  queryset=Sediment.objects.all().order_by('sediment_id'),
-    #                                             widget=CheckboxSelectMultiple(attrs={'class':'sediment_checkboxes'}),
-    #                                             required=False)
-    #
-    # # Wind Energy
-    #
-    # #TODO:  might adjust the max_value to 21.5 (this is the max min value, don't yet have the avg value...)
-    # input_parameter_wind_speed = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_avg_wind_speed = forms.FloatField(    min_value=7, max_value=9.5, initial=8,
-    #                                             #widget=SliderWidgetWithTooltip( min=10,max=21.5,step=.1,
-    #                                                                             #id="info_wind_speed_widget"),
-    #                                             widget=SliderWidget( min=7,max=9.5,step=.25),
-    #                                             required=False )
-    #
-    # input_parameter_distance_to_awc = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_distance_to_awc = forms.FloatField(   min_value=1, max_value=30, initial=15,
-    #                                             widget=SliderWidget( min=1,max=30,step=1 ),
-    #                                             required=False)
-    #
-    # input_parameter_distance_to_substation = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_distance_to_substation = forms.FloatField(    min_value=10, max_value=50, initial=30,
-    #                                                     widget=SliderWidget( min=10,max=50,step=1 ),
-    #                                                     required=False)
-    #
-    # input_parameter_wea = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # #input_parameter_wea_choice = forms.ChoiceField( widget=RadioSelect(attrs={'class': 'parameters'}), choices=WEA_CHOICES, required=False )
-    # input_wea = ModelMultipleChoiceField(   queryset=WEA.objects.all().order_by('wea_id'),
-    #                                         widget=CheckboxSelectMultiple(attrs={'class':'wea_checkboxes'}),
-    #                                         required=False)
-    #
-    # Shipping
+    def get_steps(self):
+        return get_step_0_fields()
 
-    # input_filter_ais_density = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'filters'}), required=False )
-    #input_traffic_density = forms.FloatField(   min_value=1, max_value=3, initial=2,
-    #                                            widget=SliderWidget( min=1, max=3, step=1, show_number=False),
-    #                                            required=False)
+    def _get_fields(self, names):
+        fields = []
+        for name_list in names:
+            group = []
+            for name in name_list:
+                if name:
+                    group.append(self[name])
+                else:
+                    group.append(None)
+            fields.append(group)
+        return fields
 
-    # input_filter_distance_to_shipping = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_distance_to_shipping = forms.FloatField(  min_value=1, max_value=10, initial=3,
-                                                    # widget=SliderWidget( min=1,max=10,step=1 ),
-                                                    # required=False)
+    ###
+    # is_valid() and clean() are included here to take care of some trickiness with how checkbox lists are implemented. Override these in the manner you see commented out below if you use this widget.
+    ###
+    def is_valid(self, *args, **kwargs):
+        # validation fails because what the model expects, what the form expects, and how we manage these values do not match.
+        # if len(self.errors.keys()) == 1 and self.errors.keys()[0] == 'hsall_m2_checkboxes' and len(self.errors['hsall_m2_checkboxes']) == 1 and 'is not one of the available choices.' in self.errors['hsall_m2_checkboxes'][0]:
+        #     del self._errors['hsall_m2_checkboxes']
+        return super(FeatureForm, self).is_valid()
 
-    # input_filter_uxo = forms.BooleanField(widget=CheckboxInput(attrs={'class': 'filters'}),
-                                        #   required=False)
-
-
-    # NON-ACTIVATED FORM ELEMENTS
-
-    # input_assessment_areas = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_warn_areas = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-    # input_ordinance_areas = forms.BooleanField( widget=CheckboxInput(attrs={'class': 'parameters'}), required=False )
-
-    #lease_blocks = ModelMultipleChoiceField( queryset=LeaseBlock.objects.all().order_by('id'), required=False)
+    def clean(self):
+        super(FeatureForm, self).clean()
+        # try:
+        #     if 'hsall_m2_checkboxes' not in self.cleaned_data.keys() and self.cleaned_data['hsall_m2'] == True:
+        #         checkdata = self.data.getlist('hsall_m2_checkboxes')
+        #         checklist = False
+        #         for box in checkdata:
+        #             if not box == 'False':
+        #                 checklist = True
+        #                 self.cleaned_data['hsall_m2_checkboxes'] = unicode([unicode(x) for x in box.split(',')])
+        #
+        #         if not checklist:
+        #             self.data.__delitem__('hsall_m2_checkboxes')
+        # except Exception as e:
+        #     print(e)
+        #     pass
+        return self.cleaned_data
 
     def save(self, commit=True):
         inst = super(FeatureForm, self).save(commit=False)
@@ -125,6 +95,7 @@ class ScenarioForm(FeatureForm):
         exclude = list(FeatureForm.Meta.exclude)
         for f in model.output_fields():
             exclude.append(f.attname)
+        widgets = {}
 
 
 class PlanningUnitSelectionForm(FeatureForm):

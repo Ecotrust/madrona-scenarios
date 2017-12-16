@@ -80,6 +80,11 @@
         })
       });
 
+      $(function() {
+        // map.getView().fit(planningUnitSource.getExtent());
+        map.getView().fit(planningUnitSource.getExtent(), {duration: 1500});
+      });
+
       // var wkt = 'POLYGON((10.689 -25.092, 34.595 ' +
       //     '-20.170, 38.814 -35.639, 13.502 ' +
       //     '-39.155, 10.689 -25.092))';
@@ -94,7 +99,7 @@
       // planningUnitSource.addFeature(feature);
 
       $.ajax({
-        url: '/get_planningunits',
+        url: '/scenario/get_planningunits',
         type: 'GET',
         dataType: 'json'
       })
