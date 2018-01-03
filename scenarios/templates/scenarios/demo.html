@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -7,6 +8,8 @@
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
     <script src="https://openlayers.org/en/v4.6.1/build/ol.js"></script>
+
+
     <style>
       .map {
         width: 70%;
@@ -60,63 +63,81 @@
         <div id='scenario_form'></div>
       </div>
     </div>
+    <script src="{% static 'js/lib/knockout-3.3.0.js' %}"></script>
+    <script src="{% static 'js/lib/knockout.mapping-2.4.1.js' %}"></script>
+    <script src="{% static 'js/knockout-bindings.js' %}"></script>
     <script>
-      var planningUnitSource = new ol.source.Vector({
-        features: []
-      });
-      var map = new ol.Map({
-        layers: [
-          new ol.layer.Tile({
-            source: new ol.source.OSM()
-          }),
-          new ol.layer.Vector({
-            source: planningUnitSource
-          })
-        ],
-        target: 'map',
-        view: new ol.View({
-          center: [0, 0],
-          zoom: 2
-        })
-      });
-
-      $(function() {
-        // map.getView().fit(planningUnitSource.getExtent());
-        map.getView().fit(planningUnitSource.getExtent(), {duration: 1500});
-      });
-
-      // var wkt = 'POLYGON((10.689 -25.092, 34.595 ' +
-      //     '-20.170, 38.814 -35.639, 13.502 ' +
-      //     '-39.155, 10.689 -25.092))';
-
-      var wktFormat = new ol.format.WKT();
-
-      // var feature = wktFormat.readFeature(wkt, {
-      //   dataProjection: 'EPSG:4326',
-      //   featureProjection: 'EPSG:3857'
-      // });
-
-      // planningUnitSource.addFeature(feature);
-
-      $.ajax({
-        url: '/scenario/get_planningunits',
-        type: 'GET',
-        dataType: 'json'
-      })
-      .done(function(features) {
-        for(var i = 0; i < features.length; i++) {
-          feature = wktFormat.readFeature(features[i].wkt, {
-              dataProjection: 'EPSG:3857',
-              featureProjection: 'EPSG:3857'
-          });
-          planningUnitSource.addFeature(feature);
-        }
-      })
-      .fail(function() {
-        alert("error");
-      });
-
+      if (typeof app === 'undefined') {
+        app = {};
+      }
     </script>
+
+    <!-- Get var map_settings -->
+    <script src="{% static 'scenarios/js/' %}{{ MAP_TECH }}_settings.js"></script>
+
+    <script>
+        app.planningUnitSource = new ol.source.Vector({
+          features: []
+        });
+        app.map = new ol.Map({
+          layers: [
+            new ol.layer.Tile({
+              source: new ol.source.OSM()
+            }),
+            new ol.layer.Vector({
+              source: app.planningUnitSource
+            })
+          ],
+          target: 'map',
+          view: new ol.View({
+            center: [0, 0],
+            zoom: 2
+          })
+        });
+
+        $(function() {
+          try {
+            app.map.getView().fit(planningUnitSource.getExtent(), {duration: 1500});
+          } catch (e) {
+            window.alert('No data received. Please add some features.');
+          }
+        });
+
+        // var wkt = 'POLYGON((10.689 -25.092, 34.595 ' +
+        //     '-20.170, 38.814 -35.639, 13.502 ' +
+        //     '-39.155, 10.689 -25.092))';
+
+        var wktFormat = new ol.format.WKT();
+
+        // var feature = wktFormat.readFeature(wkt, {
+        //   dataProjection: 'EPSG:4326',
+        //   featureProjection: 'EPSG:3857'
+        // });
+
+        // planningUnitSource.addFeature(feature);
+
+        $.ajax({
+          url: '/scenario/get_planningunits',
+          type: 'GET',
+          dataType: 'json'
+        })
+        .done(function(features) {
+          for(var i = 0; i < features.length; i++) {
+            feature = wktFormat.readFeature(features[i].wkt, {
+                dataProjection: 'EPSG:3857',
+                featureProjection: 'EPSG:3857'
+            });
+            app.planningUnitSource.addFeature(feature);
+          }
+        })
+        .fail(function() {
+          alert("error");
+        });
+    </script>
+
+    <script src="{% static 'scenarios/js/models.js' %}"></script>
+    <script src="{% static 'scenarios/js/scenarios.js' %}"></script>
+
     <script>
       {% if GET_SCENARIOS_URL %}
         get_scenarios_url = '{{GET_SCENARIOS_URL}}';
@@ -159,10 +180,11 @@
       $.ajax({
         url: scenario_form_url,
         type: 'GET',
-        // dataType: 'json'
-      })
-      .done(function(scenario_form) {
-        $('#scenario_form').html(scenario_form);
+        // dataType: 'json',
+        success: function(scenario_form) {
+          app.viewModel.scenarios.scenarioFormModel = new scenarioFormModel();
+          $('#scenario_form').html(scenario_form);
+        }
       })
       .fail(function() {
         alert("error");

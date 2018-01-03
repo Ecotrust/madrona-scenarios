@@ -32,7 +32,7 @@ madrona.onShow(function(){
         });
         $('div#step' + step).show();
         updateDesignScrollBar();
-        $('#scenarios-form').data('jsp').scrollTo(0,0);
+        // $('#scenarios-form').data('jsp').scrollTo(0,0);
 
 
         if (step == 1) {
@@ -67,12 +67,13 @@ madrona.onShow(function(){
     }
 
     function updateDesignScrollBar() {
-        var designsWizardScrollpane = $('#wind-design-form').data('jsp');
-        if (designsWizardScrollpane === undefined) {
-            $('#wind-design-form').jScrollPane();
-        } else {
-            setTimeout(function() {designsWizardScrollpane.reinitialise();},200);
-        }
+        var a = 1;
+        // var designsWizardScrollpane = $('#scenario-form').data('jsp');
+        // if (designsWizardScrollpane === undefined) {
+        //     $('#scenario-form').jScrollPane();
+        // } else {
+        //     setTimeout(function() {designsWizardScrollpane.reinitialise();},200);
+        // }
     };
 
     updateDesignScrollBar();
@@ -115,18 +116,18 @@ madrona.onShow(function(){
 
     /* Tooltips */
     //overriding the template here to remove empty space for title
-    $('.info-icon').popover({
-        trigger: 'hover',
-        template: '<div class="popover layer-popover"><div class="arrow"></div><div class="popover-inner layer-tooltip"><div class="popover-content"><p></p></div></div></div>'
-    });
-    $('.info-icon').click(function(e) {
-        if ( $('.popover').is(':visible') ) {
-            $('.popover').hide();
-        }
-    });
-    $('.disabled-grid-button').popover({
-        trigger: 'hover',
-        template: '<div class="popover layer-popover"><div class="arrow"></div><div class="popover-inner layer-tooltip"><div class="popover-content"><p></p></div></div></div>'
-        // html: 'true'
-    });
+    // $('.info-icon').popover({
+    //     trigger: 'hover',
+    //     template: '<div class="popover layer-popover"><div class="arrow"></div><div class="popover-inner layer-tooltip"><div class="popover-content"><p></p></div></div></div>'
+    // });
+    // $('.info-icon').click(function(e) {
+    //     if ( $('.popover').is(':visible') ) {
+    //         $('.popover').hide();
+    //     }
+    // });
+    // $('.disabled-grid-button').popover({
+    //     trigger: 'hover',
+    //     template: '<div class="popover layer-popover"><div class="arrow"></div><div class="popover-inner layer-tooltip"><div class="popover-content"><p></p></div></div></div>'
+    //     // html: 'true'
+    // });
 });

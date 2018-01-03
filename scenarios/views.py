@@ -20,13 +20,18 @@ import json
 def demo(request, template='scenarios/demo.html'):
     try:
         from core_app import project_settings as settings
+
         context = {
             'GET_SCENARIOS_URL': settings.GET_SCENARIOS_URL,
             'SCENARIO_FORM_URL': settings.SCENARIO_FORM_URL,
-            'SCENARIO_LINK_BASE': settings.SCENARIO_LINK_BASE
+            'SCENARIO_LINK_BASE': settings.SCENARIO_LINK_BASE,
         }
     except:
         context = {}
+    try:
+        context['MAP_TECH'] = settings.MAP_TECH
+    except:
+        context['MAP_TECH'] = 'ol4'
 
     return render(request, template, context)
 
