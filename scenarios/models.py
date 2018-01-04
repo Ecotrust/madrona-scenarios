@@ -17,59 +17,6 @@ from picklefield import PickledObjectField
 
 @register
 class Scenario(Analysis):
-    #Input Parameters
-    #input_objectives = models.ManyToManyField("Objective")
-    #input_parameters = models.ManyToManyField("Parameter")
-
-    #input_parameter_dist_shore = models.BooleanField(verbose_name='Distance to Shore Parameter')
-    #input_min_dist_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
-    #input_max_dist_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
-    #input_dist_shore = models.FloatField(verbose_name='Distance from Shoreline')
-    #input_dist_port = models.FloatField(verbose_name='Distance to Port')
-
-    #GeoPhysical
-
-    # input_parameter_depth = models.BooleanField(verbose_name='Depth Parameter', default=False)
-    # input_min_depth = models.FloatField(verbose_name='Minimum Depth', null=True, blank=True)
-    # input_max_depth = models.FloatField(verbose_name='Maximum Depth', null=True, blank=True)
-    #
-    # input_parameter_distance_to_shore = models.BooleanField(verbose_name='Distance to Shore', default=False)
-    # input_min_distance_to_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
-    # input_max_distance_to_shore = models.FloatField(verbose_name='Maximum Distance to Shore', null=True, blank=True)
-    #
-    # input_parameter_substrate = models.BooleanField(verbose_name='Substrate Parameter', default=False)
-    # input_substrate = models.ManyToManyField('Substrate', null=True, blank=True)
-    #
-    # input_parameter_sediment = models.BooleanField(verbose_name='Sediment Parameter', default=False)
-    # input_sediment = models.ManyToManyField('Sediment', null=True, blank=True)
-    #
-    # #Wind Energy
-    #
-    # input_parameter_wind_speed = models.BooleanField(verbose_name='Wind Speed Parameter', default=False)
-    # input_avg_wind_speed = models.FloatField(verbose_name='Average Wind Speed', null=True, blank=True)
-    #
-    # input_parameter_distance_to_awc = models.BooleanField(verbose_name='Distance to AWC Station', default=False)
-    # input_distance_to_awc = models.FloatField(verbose_name='Maximum Distance to AWC Station', null=True, blank=True)
-    #
-    # input_parameter_distance_to_substation = models.BooleanField(verbose_name='Distance to Coastal Substation', default=False)
-    # input_distance_to_substation = models.FloatField(verbose_name='Maximum Distance to Coastal Substation', null=True, blank=True)
-    #
-    # input_parameter_wea = models.BooleanField(verbose_name='WEA Parameter', default=False)
-    # input_wea = models.ManyToManyField('WEA', null=True, blank=True)
-    #
-    # #Shipping
-    #
-    # input_filter_ais_density = models.BooleanField(verbose_name='Excluding Areas with AIS Density >= 1', default=False)
-    # #input_ais_density = models.FloatField(verbose_name='Mean AIS Density', null=True, blank=True)
-    #
-    # input_filter_distance_to_shipping = models.BooleanField(verbose_name='Distance to Ship Routing Measures', default=False)
-    # input_distance_to_shipping = models.FloatField(verbose_name='Minimum Distance to Ship Routing Measures', null=True, blank=True)
-    #
-    # #Security
-    #
-    # input_filter_uxo = models.BooleanField(verbose_name='Excluding Areas with UXO', default=False)
-
-    #Descriptors (name field is inherited from Analysis)
 
     description = models.TextField(null=True, blank=True)
     satisfied = models.BooleanField(default=True)
@@ -80,35 +27,12 @@ class Scenario(Analysis):
     geometry_final_area = models.FloatField(verbose_name='Total Area', null=True, blank=True)
     geometry_dissolved = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Scenario result dissolved")
 
+    ###
+    # to be overridden by child model
+    ###
     def serialize_attributes(self):
         attributes = []
-        # if self.input_parameter_wind_speed:
-        #     wind_speed = '%.1f m/s' % (self.input_avg_wind_speed)
-        #     attributes.append({'title': 'Minimum Average Wind Speed', 'data': wind_speed})
-        # if self.input_parameter_distance_to_shore:
-        #     distance_to_shore = '%.0f - %.0f miles' % (self.input_min_distance_to_shore,
-        #                                                self.input_max_distance_to_shore)
-        #     attributes.append({'title': 'Distance to Shore', 'data': distance_to_shore})
-        # if self.input_parameter_depth:
-        #     depth_range = '%.0f - %.0f meters' %(self.input_min_depth, self.input_max_depth)
-        #     attributes.append({'title': 'Depth Range', 'data': depth_range})
-        # if self.input_parameter_distance_to_awc:
-        #     distance_to_awc = '%.0f miles' % (self.input_distance_to_awc)
-        #     attributes.append({'title': 'Max Distance to Proposed AWC Hub', 'data': distance_to_awc})
-        # if self.input_parameter_distance_to_substation:
-        #     distance_to_substation = '%.0f miles' % (self.input_distance_to_substation)
-        #     attributes.append({'title': 'Max Distance to Coastal Substation', 'data': distance_to_substation})
-        # if self.input_filter_distance_to_shipping:
-        #     miles_to_shipping = round(self.input_distance_to_shipping, 0)
-        #     if miles_to_shipping == 1:
-        #         distance_to_shipping = '%s mile' %miles_to_shipping
-        #     else:
-        #         distance_to_shipping = '%s miles' %miles_to_shipping
-        #     attributes.append({'title': 'Minimum Distance to Ship Routing Measures', 'data': distance_to_shipping})
-        # if self.input_filter_ais_density:
-        #     attributes.append({'title': 'Excluding Areas with Moderate or High Ship Traffic', 'data': ''})
-        # if self.input_filter_uxo:
-        #     attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
+
         if self.planning_units:
             attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
         return { 'event': 'click', 'attributes': attributes }
@@ -123,47 +47,14 @@ class Scenario(Analysis):
     ###
     # to be overridden by child model
     ###
+    def run_filters(self, result):
+        return result
+
     def run(self):
         result = PlanningUnit.objects.all()
-        # PU Filtration occurs here
 
-        # if self.input_parameter_distance_to_shore:
-        #     #why isn't this max_distance >= input.min_distance && min_distance <= input.max_distance ???
-        #     result = result.filter(avg_distance__gte=self.input_min_distance_to_shore, avg_distance__lte=self.input_max_distance_to_shore)
-        # if self.input_parameter_depth:
-        #     #note:  converting input to negative values and converted to meters (to match db)
-        #     input_min_depth = -self.input_min_depth
-        #     input_max_depth = -self.input_max_depth
-        #     #result = result.filter(min_depth__lte=input_min_depth, max_depth__gte=input_max_depth)
-        #     result = result.filter(avg_depth__lte=input_min_depth, avg_depth__gte=input_max_depth)
-        #     result = result.filter(avg_depth__lt=0) #not sure this is doing anything, but do want to ensure 'no data' values are not included
-        # '''
-        # if self.input_parameter_substrate:
-        #     input_substrate = [s.substrate_name for s in self.input_substrate.all()]
-        #     result = result.filter(majority_seabed__in=input_substrate)
-        # if self.input_parameter_sediment:
-        #     input_sediment = [s.sediment_name for s in self.input_sediment.all()]
-        #     result = result.filter(majority_sediment__in=input_sediment)
-        # '''
-        # #Wind Energy
-        # if self.input_parameter_wind_speed:
-        #     #input_wind_speed = mph_to_mps(self.input_avg_wind_speed)
-        #     result = result.filter(min_wind_speed_rev__gte=self.input_avg_wind_speed)
-        # if self.input_parameter_wea:
-        #     input_wea = [wea.wea_id for wea in self.input_wea.all()]
-        #     result = result.filter(wea_number__in=input_wea)
-        # if self.input_parameter_distance_to_awc:
-        #     result = result.filter(awc_min_distance__lte=self.input_distance_to_awc)
-        # if self.input_parameter_distance_to_substation:
-        #     result = result.filter(substation_min_distance__lte=self.input_distance_to_substation)
-        # #Shipping
-        # if self.input_filter_ais_density:
-        #     result = result.filter(ais_all_vessels_maj__lte=1)
-        # if self.input_filter_distance_to_shipping:
-        #     result = result.filter(tsz_min_distance__gte=self.input_distance_to_shipping)
-        # #Security
-        # if self.input_filter_uxo:
-        #     result = result.filter(uxo=0)
+        # PU Filtration occurs here
+        result = self.run_filters(result)
 
         dissolved_geom = result.aggregate(Union('geometry'))
 
@@ -479,23 +370,159 @@ class Scenario(Analysis):
         form_template = 'scenarios/form.html'
         show_template = 'scenarios/show.html'
 
-#no longer needed? Used in 'color'
-# class Objective(models.Model):
-#     name = models.CharField(max_length=35)
-#     color = models.CharField(max_length=8, default='778B1A55')
-#
-#     def __unicode__(self):
-#         return u'%s' % self.name
+    #no longer needed? Used in 'color'
+    # class Objective(models.Model):
+    #     name = models.CharField(max_length=35)
+    #     color = models.CharField(max_length=8, default='778B1A55')
+    #
+    #     def __unicode__(self):
+    #         return u'%s' % self.name
 
-#no longer needed?
-# class Parameter(models.Model):
-#     ordering_id = models.IntegerField(null=True, blank=True)
-#     name = models.CharField(max_length=35, null=True, blank=True)
-#     shortname = models.CharField(max_length=35, null=True, blank=True)
-#     objectives = models.ManyToManyField("Objective", null=True, blank=True)
-#
-#     def __unicode__(self):
-#         return u'%s' % self.name
+    #no longer needed?
+    # class Parameter(models.Model):
+    #     ordering_id = models.IntegerField(null=True, blank=True)
+    #     name = models.CharField(max_length=35, null=True, blank=True)
+    #     shortname = models.CharField(max_length=35, null=True, blank=True)
+    #     objectives = models.ManyToManyField("Objective", null=True, blank=True)
+    #
+    #     def __unicode__(self):
+    #         return u'%s' % self.name
+
+class DemoScenario(Scenario):
+    # DEMO Params
+    input_parameter_area = models.BooleanField(verbose_name='Planning Unit Area in sq. meters', default=False)
+    input_min_area = models.IntegerField(verbose_name='Minimum Planning Unit Area in sq. meters', null=True, blank=True, default=None)
+    input_max_area = models.IntegerField(verbose_name='Maximum Planning Unit Area in sq. meters', null=True, blank=True, default=None)
+
+    #Input Parameters
+    #input_objectives = models.ManyToManyField("Objective")
+    #input_parameters = models.ManyToManyField("Parameter")
+    #input_dist_port = models.FloatField(verbose_name='Distance to Port')
+    #GeoPhysical
+    # input_parameter_depth = models.BooleanField(verbose_name='Depth Parameter', default=False)
+    # input_min_depth = models.FloatField(verbose_name='Minimum Depth', null=True, blank=True)
+    # input_max_depth = models.FloatField(verbose_name='Maximum Depth', null=True, blank=True)
+    #
+    # input_parameter_distance_to_shore = models.BooleanField(verbose_name='Distance to Shore', default=False)
+    # input_min_distance_to_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
+    # input_max_distance_to_shore = models.FloatField(verbose_name='Maximum Distance to Shore', null=True, blank=True)
+    #
+    # input_parameter_substrate = models.BooleanField(verbose_name='Substrate Parameter', default=False)
+    # input_substrate = models.ManyToManyField('Substrate', null=True, blank=True)
+    #
+    # input_parameter_sediment = models.BooleanField(verbose_name='Sediment Parameter', default=False)
+    # input_sediment = models.ManyToManyField('Sediment', null=True, blank=True)
+    #
+    # #Wind Energy
+    #
+    # input_parameter_wind_speed = models.BooleanField(verbose_name='Wind Speed Parameter', default=False)
+    # input_avg_wind_speed = models.FloatField(verbose_name='Average Wind Speed', null=True, blank=True)
+    #
+    # input_parameter_distance_to_awc = models.BooleanField(verbose_name='Distance to AWC Station', default=False)
+    # input_distance_to_awc = models.FloatField(verbose_name='Maximum Distance to AWC Station', null=True, blank=True)
+    #
+    # input_parameter_distance_to_substation = models.BooleanField(verbose_name='Distance to Coastal Substation', default=False)
+    # input_distance_to_substation = models.FloatField(verbose_name='Maximum Distance to Coastal Substation', null=True, blank=True)
+    #
+    # input_parameter_wea = models.BooleanField(verbose_name='WEA Parameter', default=False)
+    # input_wea = models.ManyToManyField('WEA', null=True, blank=True)
+    #
+    # #Shipping
+    #
+    # input_filter_ais_density = models.BooleanField(verbose_name='Excluding Areas with AIS Density >= 1', default=False)
+    # #input_ais_density = models.FloatField(verbose_name='Mean AIS Density', null=True, blank=True)
+    #
+    # input_filter_distance_to_shipping = models.BooleanField(verbose_name='Distance to Ship Routing Measures', default=False)
+    # input_distance_to_shipping = models.FloatField(verbose_name='Minimum Distance to Ship Routing Measures', null=True, blank=True)
+    #
+    # #Security
+    #
+    # input_filter_uxo = models.BooleanField(verbose_name='Excluding Areas with UXO', default=False)
+    #
+    #Descriptors (name field is inherited from Analysis)
+
+    def serialize_attributes(self):
+        attributes = []
+        if self.input_parameter_area:
+            # Demo dual slider
+            area = '%d - %d meters<sup>2</sup>' % (self.input_min_area, self.input_max_area)
+            attributes.append({'title': 'Area', 'data': area})
+
+        # if self.input_parameter_wind_speed:
+        #     wind_speed = '%.1f m/s' % (self.input_avg_wind_speed)
+        #     attributes.append({'title': 'Minimum Average Wind Speed', 'data': wind_speed})
+        # if self.input_parameter_distance_to_shore:
+        #     distance_to_shore = '%.0f - %.0f miles' % (self.input_min_distance_to_shore,
+        #                                                self.input_max_distance_to_shore)
+        #     attributes.append({'title': 'Distance to Shore', 'data': distance_to_shore})
+        # if self.input_parameter_depth:
+        #     depth_range = '%.0f - %.0f meters' %(self.input_min_depth, self.input_max_depth)
+        #     attributes.append({'title': 'Depth Range', 'data': depth_range})
+        # if self.input_parameter_distance_to_awc:
+        #     distance_to_awc = '%.0f miles' % (self.input_distance_to_awc)
+        #     attributes.append({'title': 'Max Distance to Proposed AWC Hub', 'data': distance_to_awc})
+        # if self.input_parameter_distance_to_substation:
+        #     distance_to_substation = '%.0f miles' % (self.input_distance_to_substation)
+        #     attributes.append({'title': 'Max Distance to Coastal Substation', 'data': distance_to_substation})
+        # if self.input_filter_distance_to_shipping:
+        #     miles_to_shipping = round(self.input_distance_to_shipping, 0)
+        #     if miles_to_shipping == 1:
+        #         distance_to_shipping = '%s mile' %miles_to_shipping
+        #     else:
+        #         distance_to_shipping = '%s miles' %miles_to_shipping
+        #     attributes.append({'title': 'Minimum Distance to Ship Routing Measures', 'data': distance_to_shipping})
+        # if self.input_filter_ais_density:
+        #     attributes.append({'title': 'Excluding Areas with Moderate or High Ship Traffic', 'data': ''})
+        # if self.input_filter_uxo:
+        #     attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
+        
+        if self.planning_units:
+            attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
+        return { 'event': 'click', 'attributes': attributes }
+
+    def run_filters(self, result):
+        if self.input_area:
+            result = result.filter(geometry__area__gte=input_min_area, geometry__area__lte=input_max_area)
+
+        # if self.input_parameter_distance_to_shore:
+        #     #why isn't this max_distance >= input.min_distance && min_distance <= input.max_distance ???
+        #     result = result.filter(avg_distance__gte=self.input_min_distance_to_shore, avg_distance__lte=self.input_max_distance_to_shore)
+        # if self.input_parameter_depth:
+        #     #note:  converting input to negative values and converted to meters (to match db)
+        #     input_min_depth = -self.input_min_depth
+        #     input_max_depth = -self.input_max_depth
+        #     #result = result.filter(min_depth__lte=input_min_depth, max_depth__gte=input_max_depth)
+        #     result = result.filter(avg_depth__lte=input_min_depth, avg_depth__gte=input_max_depth)
+        #     result = result.filter(avg_depth__lt=0) #not sure this is doing anything, but do want to ensure 'no data' values are not included
+        # '''
+        # if self.input_parameter_substrate:
+        #     input_substrate = [s.substrate_name for s in self.input_substrate.all()]
+        #     result = result.filter(majority_seabed__in=input_substrate)
+        # if self.input_parameter_sediment:
+        #     input_sediment = [s.sediment_name for s in self.input_sediment.all()]
+        #     result = result.filter(majority_sediment__in=input_sediment)
+        # '''
+        # #Wind Energy
+        # if self.input_parameter_wind_speed:
+        #     #input_wind_speed = mph_to_mps(self.input_avg_wind_speed)
+        #     result = result.filter(min_wind_speed_rev__gte=self.input_avg_wind_speed)
+        # if self.input_parameter_wea:
+        #     input_wea = [wea.wea_id for wea in self.input_wea.all()]
+        #     result = result.filter(wea_number__in=input_wea)
+        # if self.input_parameter_distance_to_awc:
+        #     result = result.filter(awc_min_distance__lte=self.input_distance_to_awc)
+        # if self.input_parameter_distance_to_substation:
+        #     result = result.filter(substation_min_distance__lte=self.input_distance_to_substation)
+        # #Shipping
+        # if self.input_filter_ais_density:
+        #     result = result.filter(ais_all_vessels_maj__lte=1)
+        # if self.input_filter_distance_to_shipping:
+        #     result = result.filter(tsz_min_distance__gte=self.input_distance_to_shipping)
+        # #Security
+        # if self.input_filter_uxo:
+        #     result = result.filter(uxo=0)
+
+        return result
 
 class PlanningUnit(models.Model):
     # prot_number = models.CharField(max_length=7, null=True, blank=True)

@@ -3,8 +3,11 @@
 <html>
   <head>
     <title>Simple Map</title>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> -->
+    <script src="https://code.jquery.com/jquery-1.7.1.js" integrity="sha256-n8wkEJNAWUaIUDnfQoz6fwBRofK9vMWjE6F3qeNfiAY=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js" integrity="sha256-DI6NdAhhFRnO2k51mumYeDShet3I8AKCQf/tf7ARNhI=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://openlayers.org/en/v4.6.1/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="{% static 'scenarios/css/scenarios_form.css' %}" type="text/css">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
     <script src="https://openlayers.org/en/v4.6.1/build/ol.js"></script>
@@ -38,7 +41,9 @@
         /*position: relative;*/
       }
       #scenarios, #scenario_form {
-        /*min-width: 85%*/
+        margin-bottom: 3px;
+        min-width: 90%;
+        padding: 4px;
         max-height: 50%;
         position: absolute;
         overflow-y: auto;
@@ -97,7 +102,7 @@
 
         $(function() {
           try {
-            app.map.getView().fit(planningUnitSource.getExtent(), {duration: 1500});
+            app.map.getView().fit(app.planningUnitSource.getExtent(), {duration: 1500});
           } catch (e) {
             window.alert('No data received. Please add some features.');
           }

@@ -36,12 +36,59 @@ class ScenarioForm(FeatureForm):
     #RDH Generic updates 12/15/2017: I have no idea if we need this, but it isn't hurting anything (yet).
     support_file = ValidFileField(widget=AdminFileWidget,required=False,label="Support File")
 
+    area = forms.BooleanField(
+        label="Area",
+        required=False,
+        help_text="Area of Planning Unit in sq. meters",
+        widget=CheckboxInput(
+            attrs={
+                'class': 'parameters hidden_checkbox'
+            }
+        )
+    )
+    area_min = forms.FloatField(
+        required=False,
+        initial=310000000,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'slidervalue',
+                'pre_text': 'Area'
+            }
+        )
+    )
+    area_max = forms.FloatField(
+        required=False,
+        initial=5900000000,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'slidervalue',
+                'pre_text': 'to',
+                'post_text': 'm<sup>2</sup>'
+            }
+        )
+    )
+    area_input = forms.FloatField(
+        widget=DualSliderWidget(
+            'area_min',
+            'area_max',
+            min=3000000000,
+            max=6000000000,
+            step=10000000
+        )
+    )
+
     def get_step_0_fields(self):
-        names = ()
+        names = [
+            ('area', 'area_min', 'area_max', 'area_input'),
+        ]
+        return self._get_fields(names)
+
+    def get_step_1_fields(self):
+        names = []
         return self._get_fields(names)
 
     def get_steps(self):
-        return self.get_step_0_fields()
+        return self.get_step_0_fields(),
 
     def _get_fields(self, names):
         fields = []
@@ -52,6 +99,8 @@ class ScenarioForm(FeatureForm):
                     group.append(self[name])
                 else:
                     group.append(None)
+            while len(group) < 5:
+                group.append(None)
             fields.append(group)
         return fields
 
