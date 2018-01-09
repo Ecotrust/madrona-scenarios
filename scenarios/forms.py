@@ -48,7 +48,7 @@ class ScenarioForm(FeatureForm):
     )
     area_min = forms.FloatField(
         required=False,
-        initial=310000000,
+        initial=350000000,
         widget=forms.TextInput(
             attrs={
                 'class': 'slidervalue',
@@ -58,7 +58,7 @@ class ScenarioForm(FeatureForm):
     )
     area_max = forms.FloatField(
         required=False,
-        initial=5900000000,
+        initial=5500000000,
         widget=forms.TextInput(
             attrs={
                 'class': 'slidervalue',
@@ -73,7 +73,7 @@ class ScenarioForm(FeatureForm):
             'area_max',
             min=3000000000,
             max=6000000000,
-            step=10000000
+            step=100000000
         )
     )
 

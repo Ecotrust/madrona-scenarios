@@ -3,15 +3,18 @@
 <html>
   <head>
     <title>Simple Map</title>
-    <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> -->
     <script src="https://code.jquery.com/jquery-1.7.1.js" integrity="sha256-n8wkEJNAWUaIUDnfQoz6fwBRofK9vMWjE6F3qeNfiAY=" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js" integrity="sha256-DI6NdAhhFRnO2k51mumYeDShet3I8AKCQf/tf7ARNhI=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <link rel="stylesheet" href="https://openlayers.org/en/v4.6.1/css/ol.css" type="text/css">
-    <link rel="stylesheet" href="{% static 'scenarios/css/scenarios_form.css' %}" type="text/css">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
     <script src="https://openlayers.org/en/v4.6.1/build/ol.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.0.1/css/font-awesome.min.css">
 
+    <link rel="stylesheet" href="{% static 'scenarios/css/scenarios_form.css' %}" type="text/css">
 
     <style>
       .map {
@@ -68,8 +71,9 @@
         <div id='scenario_form'></div>
       </div>
     </div>
-    <script src="{% static 'js/lib/knockout-3.3.0.js' %}"></script>
-    <script src="{% static 'js/lib/knockout.mapping-2.4.1.js' %}"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/2.1.0/knockout-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.3.2/knockout.mapping.js"></script>
     <script src="{% static 'js/knockout-bindings.js' %}"></script>
     <script>
       if (typeof app === 'undefined') {
@@ -81,17 +85,16 @@
     <script src="{% static 'scenarios/js/' %}{{ MAP_TECH }}_settings.js"></script>
 
     <script>
-        app.planningUnitSource = new ol.source.Vector({
-          features: []
-        });
+        app.scenariosLayer = mapSettings.getInitFilterResultsLayer();
+        // TODO: OpenLayers specific code!!!
+        app.scenariosSource = app.scenariosLayer.getSource();
         app.map = new ol.Map({
           layers: [
             new ol.layer.Tile({
-              source: new ol.source.OSM()
+              source: new ol.source.OSM(),
+              name: 'Scenario Layer'
             }),
-            new ol.layer.Vector({
-              source: app.planningUnitSource
-            })
+            app.scenariosLayer
           ],
           target: 'map',
           view: new ol.View({
@@ -101,43 +104,29 @@
         });
 
         $(function() {
-          try {
-            app.map.getView().fit(app.planningUnitSource.getExtent(), {duration: 1500});
-          } catch (e) {
-            window.alert('No data received. Please add some features.');
-          }
-        });
-
-        // var wkt = 'POLYGON((10.689 -25.092, 34.595 ' +
-        //     '-20.170, 38.814 -35.639, 13.502 ' +
-        //     '-39.155, 10.689 -25.092))';
-
-        var wktFormat = new ol.format.WKT();
-
-        // var feature = wktFormat.readFeature(wkt, {
-        //   dataProjection: 'EPSG:4326',
-        //   featureProjection: 'EPSG:3857'
-        // });
-
-        // planningUnitSource.addFeature(feature);
-
-        $.ajax({
-          url: '/scenario/get_planningunits',
-          type: 'GET',
-          dataType: 'json'
-        })
-        .done(function(features) {
-          for(var i = 0; i < features.length; i++) {
-            feature = wktFormat.readFeature(features[i].wkt, {
-                dataProjection: 'EPSG:3857',
-                featureProjection: 'EPSG:3857'
+            $.ajax({
+              url: '/scenario/get_planningunits',
+              type: 'GET',
+              dataType: 'json'
+            })
+            .done(function(features) {
+              for(var i = 0; i < features.length; i++) {
+                feature = features[i].wkt;
+                app.scenariosLayer.addWKTFeatures(feature);
+              }
+              try {
+                // TODO: OL Specific code!!!
+                app.map.getView().fit(app.scenariosSource.getExtent(), {duration: 1500});
+              } catch (e) {
+                window.alert('No data received. Please add some features.');
+              }
+            })
+            .fail(function() {
+              alert("error");
             });
-            app.planningUnitSource.addFeature(feature);
-          }
-        })
-        .fail(function() {
-          alert("error");
         });
+
+
     </script>
 
     <script src="{% static 'scenarios/js/models.js' %}"></script>
@@ -173,23 +162,12 @@
         }
         html = html + '</ul>';
         $('#scenarios').html(html)
-      })
-      .fail(function() {
-        alert("error");
-      });
-      {% if SCENARIO_FORM_URL %}
-        scenario_form_url = '{{SCENARIO_FORM_URL}}';
-      {% else %}
-        scenario_form_url = '/features/scenario/form/';
-      {% endif %}
-      $.ajax({
-        url: scenario_form_url,
-        type: 'GET',
-        // dataType: 'json',
-        success: function(scenario_form) {
-          app.viewModel.scenarios.scenarioFormModel = new scenarioFormModel();
-          $('#scenario_form').html(scenario_form);
-        }
+        {% if SCENARIO_FORM_URL %}
+          scenario_form_url = '{{SCENARIO_FORM_URL}}';
+        {% else %}
+          scenario_form_url = '/features/scenario/form/';
+        {% endif %}
+        app.viewModel.scenarios.createNewScenario(scenario_form_url);
       })
       .fail(function() {
         alert("error");

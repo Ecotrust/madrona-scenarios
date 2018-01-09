@@ -128,31 +128,7 @@ var madrona = {
 
 function scenarioFormModel(options) {
     var self = this;
-
-    self.species = ko.observable(false);
-    self.lifestage = ko.observable(false);
-    self.mean_fthm = ko.observable(false);
-    self.hsall_m2 = ko.observable(false);
-    self.hsall_m2_checkboxes_0 = ko.observable(true);
-    self.hsall_m2_checkboxes_1 = ko.observable(true);
-    self.hsall_m2_checkboxes_2 = ko.observable(true);
-    self.hsall_m2_checkboxes_3 = ko.observable(true);
-    self.hsall1_m2 = ko.observable(false);
-    self.hsall2_m2 = ko.observable(false);
-    self.hsall3_m2 = ko.observable(false);
-    self.hsall4_m2 = ko.observable(false);
-
-    self.hpc_est_m2 = ko.observable(false);
-    self.hpc_klp_m2 = ko.observable(false);
-    self.hpc_rck_m2 = ko.observable(false);
-    self.hpc_sgr_m2 = ko.observable(false);
-    self.sft_sub_m2 = ko.observable(false);
-    self.mix_sub_m2 = ko.observable(false);
-    self.hrd_sub_m2 = ko.observable(false);
-
-    self.rck_sub_m2 = ko.observable(false);
-    self.cnt_cs = ko.observable(false);
-    self.cnt_penn = ko.observable(false);
+    self.area = ko.observable(false);
 
     self.lastChange = (new Date()).getTime();
 
@@ -211,7 +187,6 @@ function scenarioFormModel(options) {
             self.updateFilters(param);
         }
 
-        self.updateDesignScrollBar();
         self.updateFilterCount(param);
     };
 
@@ -294,8 +269,6 @@ function scenarioFormModel(options) {
 
     self.stopShowingFilteringResults = function() {
         self.showingFilteringResults(false);
-        // app.map.removeLayer(self.scenarioFormModel.updatedFilterResultsLayer);
-        // self.updatedFilterResultsLayer.removeAllFeatures();
         self.updatedFilterResultsLayer.setVisibility(false);
     };
 
@@ -327,7 +300,6 @@ function scenarioFormModel(options) {
         }
     };
 
-    // TODO: CHANGE TO A GET
     self.getUpdatedFilterCount = function() {
         (function() {
             var request = $.ajax({
@@ -349,7 +321,6 @@ function scenarioFormModel(options) {
         })();
     };
 
-    // TODO: CHANGE TO A GET
     self.getUpdatedFilterResults = function() {
         self.updatedFilterResultsLayer.setVisibility(false);
         self.showButtonSpinner(true);
@@ -366,9 +337,7 @@ function scenarioFormModel(options) {
                             featureCount = data[0].count;
                         self.updatedFilterResultsLayer.removeAllFeatures();
                         if (featureCount) {
-                            var format = new OpenLayers.Format.WKT()
-                                feature = format.read(wkt);
-                            self.updatedFilterResultsLayer.addFeatures([feature]);
+                            self.updatedFilterResultsLayer.addWKTFeatures(wkt);
                         }
                         self.updatedFilterResultsLayer.setVisibility(true);
                         self.gridCellsRemaining(featureCount);
@@ -378,7 +347,7 @@ function scenarioFormModel(options) {
                 error: function(result) {
                     self.showButtonSpinner(false);
                     self.showingFilteringResults(false);
-                    console.log('error in getUpdatedFilterResults: ' + error);
+                    console.log('error in getUpdatedFilterResults: ' + result);
                 }
             });
             self.currentGridRequest(request);
@@ -802,9 +771,9 @@ function scenariosModel(options) {
 
     self.reportsVisible = ko.observable(false);
 
-    self.leaseblockLayer = ko.observable(false);
+    self.filterLayer = ko.observable(false);
 
-    self.leaseblockLayer.subscribe( function() {
+    self.filterLayer.subscribe( function() {
         app.viewModel.updateAttributeLayers();
     });
 
@@ -1186,7 +1155,7 @@ function scenariosModel(options) {
         }
 
         //remove the key/value pair from aggregatedAttributes
-        app.viewModel.removeFromAggregatedAttributes(self.leaseblockLayer().name);
+        app.viewModel.removeFromAggregatedAttributes(self.filterLayer().name);
         app.viewModel.updateAttributeLayers();
 
         self.updateDesignsScrollBar();
@@ -1213,8 +1182,8 @@ function scenariosModel(options) {
         ko.cleanNode(scenarioForm);
         delete self.scenarioFormModel;
         //hide remaining leaseblocks
-        if ( self.leaseblockLayer() && app.map.getLayersByName(self.leaseblockLayer().name).length ) {
-            app.map.removeLayer(self.leaseblockLayer());
+        if ( self.filterLayer() && app.map.getLayersByName(self.filterLayer().name).length ) {
+            app.map.removeLayer(self.filterLayer());
         }
     };
 
@@ -1224,29 +1193,35 @@ function scenariosModel(options) {
         $(collectionForm).empty();
         ko.cleanNode(collectionForm);
         delete self.collectionFormModel;
-        //hide remaining leaseblocks
-        // if ( self.leaseblockLayer() && app.map.getLayersByName(self.leaseblockLayer().name).length ) {
-        //     app.map.removeLayer(self.leaseblockLayer());
-        // }
     };
 
-    self.createWindScenario = function() {
+    self.createNewScenario = function(form_url) {
         //hide designs tab by sliding left
+        if (!form_url) {
+          form_url = '/features/scenario/form/';
+        }
         return $.ajax({
-            url: '/features/scenario/form/',
+            url: form_url,
             success: function(data) {
                 self.scenarioForm(true);
-                $('#'+app.viewModel.currentTocId()+'-scenario-form > .scenario-form').html(data);
-                self.scenarioFormModel = new scenarioFormModel();
-                ko.applyBindings(self.scenarioFormModel, document.getElementById(app.viewModel.currentTocId()+'-scenario-form').children[0]);
-                self.scenarioFormModel.updateDesignScrollBar();
-                if ( ! self.leaseblockLayer() && app.viewModel.modernBrowser() ) {
+                $('#scenario_form').html(data);
+                self.scenarioFormModel = new scenarioFormModel;
+                app.viewModel.scenarios.scenarioFormModel = new scenarioFormModel();
+                var model = app.viewModel.scenarios.scenarioFormModel;
+                try {
+                  var form_id = app.viewModel.currentTocId()+'-scenario-form';
+                  ko.applyBindings(self.scenarioFormModel, document.getElementById(form_id).children[0]);
+                } catch (err) {
+                  var form_id = 'scenario_form';
+                  ko.applyBindings(model, document.getElementById(form_id).children[0]);
+                }
+                if ( ! self.filterLayer() && app.viewModel.modernBrowser() ) {
                     self.loadLeaseblockLayer();
                 }
                 window.dispatchEvent(new Event('resize'));
             },
             error: function (result) {
-                console.log('failure at scenarios.js line 1031.');
+                console.log('failure at scenarios.js "createNewScenario".');
             }
         });
     };
@@ -1839,36 +1814,7 @@ function scenariosModel(options) {
       });
     };
 
-    self.loadLeaseblockLayer = function() {
-        //console.log('loading lease block layer');
-        var leaseBlockLayer = new OpenLayers.Layer.Vector(
-            self.scenarioLeaseBlocksLayerName,
-            {
-                projection: new OpenLayers.Projection('EPSG:3857'),
-                displayInLayerSwitcher: false,
-                strategies: [new OpenLayers.Strategy.Fixed()],
-                protocol: new OpenLayers.Protocol.HTTP({
-                    //url: '/media/data_manager/geojson/LeaseBlockWindSpeedOnlySimplifiedNoDecimal.json',
-                    url: '/media/data_manager/geojson/ofr_planning_grid.json',
-                    format: new OpenLayers.Format.GeoJSON()
-                }),
-                //styleMap: new OpenLayers.StyleMap( {
-                //    "default": new OpenLayers.Style( { display: "none" } )
-                //})
-                layerModel: new layerModel({
-                    name: self.scenarioLeaseBlocksLayerName
-                })
-            }
-        );
-        self.leaseblockLayer(leaseBlockLayer);
-
-        self.leaseblockLayer().events.register("loadend", self.leaseblockLayer(), function() {
-            if (self.scenarioFormModel && ! self.scenarioFormModel.IE) {
-                self.scenarioFormModel.showLeaseblockSpinner(false);
-            }
-        });
-    };
-
+    self.loadLeaseblockLayer = mapSettings.loadFilterLayer;
     self.leaseblockList = [];
 
     //populates leaseblockList

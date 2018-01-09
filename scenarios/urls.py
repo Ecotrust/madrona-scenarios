@@ -1,12 +1,8 @@
 from django.conf.urls import url
-from scenarios import views
-from .views import (sdc_analysis, delete_design, get_attributes, get_scenarios,
-                   get_planningunits, get_planningunit_features,
-                   share_design, copy_design, get_selections, ExportShapefile,
-                   ExportGeoJSON, ExportWKT, ExportKML)
+from .views import *
 
 urlpatterns = [
-    url(r'demo', views.demo, name='demo'),
+    url(r'demo', demo, name='demo'),
     # feature reports
     # user requested sdc analysis
     url(r'sdc_report/(\d+)', sdc_analysis, name='sdc_analysis'),
@@ -20,6 +16,8 @@ urlpatterns = [
     url(r'copy_design/(?P<uid>[\w_]+)/$', copy_design),
     url(r'get_selections$', get_selections),
     url(r'get_planningunit_features$', get_planningunit_features),
+    url(r'get_filter_count$', get_filter_count),
+    url(r'get_filter_results$', get_filter_results),
 
     url(r'export/shp/(?P<feature_id>[\w_]+).zip$',
         ExportShapefile.as_view(), name='export_shp'),

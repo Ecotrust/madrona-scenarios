@@ -6,7 +6,7 @@
     <h4>{{title}}</h4>
     <div class="show-blocks-btn">
         <a class="button btn enabled-grid-button" style="padding: 4px 9px; margin-right: 10px;" data-bind="click: showFilteringResults">
-            <span>Show Grid Cells</span>
+            <span>Show Filter Results</span>
             <span class="badge" style="margin-right: 5px; margin-left: -5px;" data-bind="text: gridCellsRemaining()"></span>
             <i class="icon-large icon-check-empty" style="margin-left: 5px;" data-bind="visible: ! showingFilteringResults()"></i>
             <i class="icon-large icon-check" style="margin-left: 5px;" data-bind="visible: showingFilteringResults() && !showButtonSpinner()"></i>
@@ -25,15 +25,13 @@
         {% for step in form.get_steps %}
         <div id="step{{ forloop.counter }}" class="step">
             <p class="step-text"><i>Step {{ forloop.counter }} of {{ form.get_steps|length|add:"1" }} </i></p>
-            <!-- <p class="instructions">Select 1 or more criteria for this sector </p> -->
-            <!-- <label class="step-header">Report Label</label> -->
             <p class="instructions">Select criteria to filter your results</p>
             <div id="step{{ forloop.counter }}_inputs">
                 <ul class="parameters">
                     {% for field, field_min, field_max, field_input, field_checkbox in step %}
                     <li>
                         <div class="accordion" id="{{ field.html_name }}_accordion">
-                            <div class="accordion-heading" data-bind="click: function() { toggleParameter('{{ field.html_name }}'); }">
+                            <div class="accordion-heading" data-bind="click: function() {app.viewModel.scenarios.scenarioFormModel.toggleParameter('{{ field.html_name }}'); }">
                                 <label class="accordion-toggle">
                                     {{ field.as_widget }}
                                     <i class="check icon-large icon-check" data-bind="visible: {{ field.html_name }}()"></i>

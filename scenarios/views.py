@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from scenarios.export import geometries_to_shp, create_metadata_xml, zip_objects
+from django.contrib.gis.db.models.aggregates import Union
 
 from scenarios.models import Scenario, PlanningUnitSelection, PlanningUnit
 from django.conf import settings
@@ -227,6 +228,64 @@ def share_design(request):
     groups = [g.map_group.permission_group for g in groups]
     design.share_with(groups, append=False)
     return HttpResponse("", status=200)
+
+
+'''
+'''
+
+def run_filter_query(filters):
+    from collections import OrderedDict
+    # TODO: This would be nicer if it generically knew how to filter fields
+    # by name, and what kinds of filters they were. For now, hard code.
+    notes = []
+    query = PlanningUnit.objects.all()
+
+    if 'area' in filters.keys() and filters['area']:
+        # RDH 1/8/18: filter(geometry__area_range(...)) does not seem available.
+        # query = query.filter(geometry__area__range=(filters['area_min'], filters['area_max']))
+        pu_ids = [pu.pk for pu in query if pu.geometry.area <= float(filters['area_max']) and pu.geometry.area>= float(filters['area_min'])]
+        query = (query.filter(pk__in=pu_ids))
+
+    return (query, notes)
+
+'''
+'''
+@cache_page(60 * 60) # 1 hour of caching
+def get_filter_count(request):
+    filter_dict = dict(request.GET.items())
+    (query, notes) = run_filter_query(filter_dict)
+    return HttpResponse(query.count(), status=200)
+
+
+'''
+'''
+@cache_page(60 * 60) # 1 hour of caching
+def get_filter_results(request):
+    filter_dict = dict(request.GET.items())
+
+    (query, notes) = run_filter_query(filter_dict)
+
+    json = []
+    count = query.count()
+    if count == 0:
+        json = [{
+            'count': 0,
+            'wkt': None
+        }]
+    else:
+        dissolved_geom = query.aggregate(Union('geometry'))
+        if dissolved_geom['geometry__union']:
+            dissolved_geom = dissolved_geom['geometry__union']
+        else:
+            raise Exception("No planning units available with the current filters.")
+        json = [{
+            'count': count,
+            'wkt': dissolved_geom.wkt
+        }]
+
+    # return # of grid cells and dissolved geometry in geojson
+    return HttpResponse(dumps(json))
+
 
 '''
 '''
