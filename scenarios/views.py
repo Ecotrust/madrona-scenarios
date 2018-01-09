@@ -243,6 +243,8 @@ def run_filter_query(filters):
     if 'area' in filters.keys() and filters['area']:
         # RDH 1/8/18: filter(geometry__area_range(...)) does not seem available.
         # query = query.filter(geometry__area__range=(filters['area_min'], filters['area_max']))
+
+        # RDH 1/9/18: Why can't we use the model's 'Run Filters' function?
         pu_ids = [pu.pk for pu in query if pu.geometry.area <= float(filters['area_max']) and pu.geometry.area>= float(filters['area_min'])]
         query = (query.filter(pk__in=pu_ids))
 

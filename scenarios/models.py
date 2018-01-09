@@ -475,7 +475,7 @@ class DemoScenario(Scenario):
         #     attributes.append({'title': 'Excluding Areas with Moderate or High Ship Traffic', 'data': ''})
         # if self.input_filter_uxo:
         #     attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
-        
+
         if self.planning_units:
             attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
         return { 'event': 'click', 'attributes': attributes }
@@ -721,9 +721,9 @@ class PlanningUnit(models.Model):
 #     wea_id = models.IntegerField()
 #     wea_name = models.CharField(max_length=35)
 #     wea_shortname = models.CharField(max_length=35)
-
-    def __unicode__(self):
-        return u'%s' % self.wea_name
+#
+#     def __unicode__(self):
+#         return u'%s' % self.wea_name
 
 @register
 class PlanningUnitSelection(Analysis):

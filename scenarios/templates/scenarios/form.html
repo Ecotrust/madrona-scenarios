@@ -1,5 +1,6 @@
 <div class="featurepanel">
 
+
     {% load static from staticfiles %}
 
     {% if form.media %} {{ form.media }} {% endif %}
@@ -37,11 +38,10 @@
                                     <i class="check icon-large icon-check" data-bind="visible: {{ field.html_name }}()"></i>
                                     <i class="check icon-large icon-check-empty"></i>
                                     <span class="parameter-label" style="margin-left: 5px">{{ field.label }}</span>
-                                    <i class="info-icon icon-info-sign"
-                                       rel="popover"
-                                       data-content="{{ field.help_text }}"
-                                       data-placement="right"
-                                       data-container="body">
+                                    <i class="info-icon icon-info-sign field-tooltip"
+                                       data-toggle="tooltip"
+                                       data-original-title="{{ field.help_text }}"
+                                       data-placement="top">
                                     </i>
                                 </label>
                             </div>
@@ -206,12 +206,12 @@
 
     <script type="text/javascript">
       var max_step = {{ form.get_steps|length|add:"1" }};
-    </script>
 
-    <script type="text/javascript">
-        jQuery.getScript("{% static 'scenarios/js/scenarios_form.js' %}", function () {
-            console.debug("Loaded: {% static 'scenarios/js/scenarios_form.js' %}");
-        });
+      jQuery.getScript("{% static 'scenarios/js/scenarios_form.js' %}", function () {
+          console.debug("Loaded: {% static 'scenarios/js/scenarios_form.js' %}");
+      });
+
+      $('.field-tooltip').tooltip({trigger:'hover'});
     </script>
 
 
