@@ -85,15 +85,25 @@
     <script src="{% static 'scenarios/js/' %}{{ MAP_TECH }}_settings.js"></script>
 
     <script>
-        app.scenariosLayer = mapSettings.getInitFilterResultsLayer();
+        app.scenariosLayer = mapSettings.getInitFilterResultsLayer('scenarios', false);
+        var PUStyle = new ol.style.Style({
+            fill: new ol.style.Fill({color: [80,80,80, 0.5]}),
+            stroke: new ol.style.Stroke({
+              color:[0, 0, 0, 0.8],
+              width: 1
+            }),
+        });
+        app.planningUnitsLayer = mapSettings.getInitFilterResultsLayer('planning units', PUStyle);
         // TODO: OpenLayers specific code!!!
         app.scenariosSource = app.scenariosLayer.getSource();
+        app.planningUnitsSource = app.planningUnitsLayer.getSource();
         app.map = new ol.Map({
           layers: [
             new ol.layer.Tile({
               source: new ol.source.OSM(),
-              name: 'Scenario Layer'
+              name: 'OSM Base Layer'
             }),
+            app.planningUnitsLayer,
             app.scenariosLayer
           ],
           target: 'map',
@@ -112,11 +122,11 @@
             .done(function(features) {
               for(var i = 0; i < features.length; i++) {
                 feature = features[i].wkt;
-                app.scenariosLayer.addWKTFeatures(feature);
+                app.planningUnitsLayer.addWKTFeatures(feature);
               }
               try {
                 // TODO: OL Specific code!!!
-                app.map.getView().fit(app.scenariosSource.getExtent(), {duration: 1500});
+                app.map.getView().fit(app.planningUnitsSource.getExtent(), {duration: 1500});
               } catch (e) {
                 window.alert('No data received. Please add some features.');
               }

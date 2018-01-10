@@ -1,18 +1,22 @@
 var mapSettings = {
-  getInitFilterResultsLayer: function() {
-    var defaultStyle = new ol.style.Style({
-        fill: new ol.style.Fill({color: [238,153,0, 0.5]}),
-        stroke: new ol.style.Stroke({
-          color:[221, 221, 221, 0.6],
-          width: 1
-        }),
-    });
+  getInitFilterResultsLayer: function(layerName, style) {
+    if (style) {
+      var defaultStyle = style;
+    } else {
+      var defaultStyle = new ol.style.Style({
+          fill: new ol.style.Fill({color: [238,153,0, 0.5]}),
+          stroke: new ol.style.Stroke({
+            color:[221, 221, 221, 0.6],
+            width: 1
+          }),
+      });
+    }
     var source = new ol.source.Vector({
       projection: 'EPSG:3857',
       features: []
     });
     layer = new ol.layer.Vector({
-        name: 'scenarios',
+        name: layerName,
         source: source,
         style: defaultStyle
     });
