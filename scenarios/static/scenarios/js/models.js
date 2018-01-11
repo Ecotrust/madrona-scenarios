@@ -561,7 +561,7 @@ function layerModel(options, parent) {
             //$(legendID).slideDown(200);
         }
         //update scrollbar
-        setTimeout( function() { app.viewModel.updateScrollBars(); }, 200 );
+        // setTimeout( function() { app.viewModel.updateScrollBars(); }, 200 );
     };
 
     self.showingLayerAttribution = ko.observable(false);
@@ -689,11 +689,11 @@ function themeModel(options) {
         if (self.isOpenTheme(theme)) {
             //app.viewModel.activeTheme(null);
             app.viewModel.openThemes.remove(theme);
-            app.viewModel.updateScrollBars();
+            // app.viewModel.updateScrollBars();
         } else {
             app.viewModel.openThemes.push(theme);
             //setTimeout( app.viewModel.updateScrollBar(), 1000);
-            app.viewModel.updateScrollBars();
+            // app.viewModel.updateScrollBars();
         }
     };
 
@@ -921,7 +921,7 @@ function viewModel() {
         app.map.render('map');
         if (self.showLayers()) app.map.render('map'); //doing this again seems to prevent the vector wandering effect
         app.updateUrl();
-        app.viewModel.updateScrollBars();
+        // app.viewModel.updateScrollBars();
         //if toggling layers during default pageguide, then correct step 4 position
         //self.correctTourPosition();
         //throws client-side error in pageguide.js for some reason...
@@ -1046,7 +1046,9 @@ function viewModel() {
 
     self.closeAttribution = function() {
         self.aggregatedAttributes(false);
-        app.markers.clearMarkers();
+        if (app.markers) {
+          app.markers.clearMarkers();
+        }
         if ( app.embeddedMap ) {
             self.showMapAttribution();
         }
@@ -1150,9 +1152,9 @@ function viewModel() {
                 $('panel-tabs').show();
                 $('.tab-content').show();
             }, 200);
-            setTimeout( function() {
-                self.updateAllScrollBars();
-            }, 400);
+            // setTimeout( function() {
+            //     self.updateAllScrollBars();
+            // }, 400);
         }
         self.minimized = !self.minimized;
     };
@@ -1195,7 +1197,7 @@ function viewModel() {
     // is the legend panel visible?
     self.showLegend = ko.observable(false);
     self.showLegend.subscribe(function (newVal) {
-        self.updateScrollBars();
+        // self.updateScrollBars();
         if (self.printing.enabled()) {
             self.printing.showLegend(newVal);
         }
@@ -1266,10 +1268,10 @@ function viewModel() {
         self.showLegend(!self.showLegend());
         if (!self.showLegend()) {
             app.map.render('map');
-        } else {
+        // } else {
             //update the legend scrollbar
             //$('#legend-content').data('jsp').reinitialise();
-            self.updateScrollBars();
+            // self.updateScrollBars();
         }
 
         //app.map.render('map');
@@ -1630,7 +1632,7 @@ function viewModel() {
 
         //update the legend scrollbar
         //setTimeout(function() {$('#legend-content').data('jsp').reinitialise();}, 200);
-        setTimeout(function() { app.viewModel.updateScrollBars(); }, 200);
+        // setTimeout(function() { app.viewModel.updateScrollBars(); }, 200);
 
         // update the url hash
         app.updateUrl();
@@ -1650,7 +1652,7 @@ function viewModel() {
         for (var i=0; i< numOpenThemes; i++) {
             self.openThemes.remove(self.openThemes()[0]);
         }
-        self.updateScrollBars();
+        // self.updateScrollBars();
     };
 
     // do this stuff when the visible layers change

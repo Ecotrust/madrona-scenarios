@@ -19,16 +19,19 @@ import json
 
 
 def demo(request, template='scenarios/demo.html'):
+    context = {}
     try:
-        from core_app import project_settings as settings
-
-        context = {
-            'GET_SCENARIOS_URL': settings.GET_SCENARIOS_URL,
-            'SCENARIO_FORM_URL': settings.SCENARIO_FORM_URL,
-            'SCENARIO_LINK_BASE': settings.SCENARIO_LINK_BASE,
-        }
+        context['GET_SCENARIOS_URL'] =  settings.GET_SCENARIOS_URL
     except:
-        context = {}
+        context['GET_SCENARIOS_URL'] =  "/scenario/get_scenarios/DemoScenario/"
+    try:
+        context['SCENARIO_FORM_URL'] = settings.SCENARIO_FORM_URL
+    except:
+        context['SCENARIO_FORM_URL'] = "/features/demoscenario/form/"
+    try:
+        context['SCENARIO_LINK_BASE'] = settings.SCENARIO_LINK_BASE
+    except:
+        context['SCENARIO_LINK_BASE'] = "/features/demoscenario/scenarios_demoscenario"
     try:
         context['MAP_TECH'] = settings.MAP_TECH
     except:
@@ -93,7 +96,9 @@ def delete_design(request, uid):
     return HttpResponse("", status=200)
 
 @login_required()
-def get_scenarios(request, scenario_model=Scenario):
+def get_scenarios(request, scenario_model_name='Scenario'):
+    from django.apps import apps
+    scenario_model = apps.get_app_config('scenarios').get_model(scenario_model_name)
     json = []
 
     scenarios = scenario_model.objects.filter(user=request.user, active=True).order_by('date_created')

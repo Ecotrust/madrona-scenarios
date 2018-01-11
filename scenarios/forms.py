@@ -146,6 +146,17 @@ class ScenarioForm(FeatureForm):
             exclude.append(f.attname)
         widgets = {}
 
+class DemoScenarioForm(ScenarioForm):
+    class Meta(ScenarioForm.Meta):
+        model = DemoScenario
+        exclude = list(FeatureForm.Meta.exclude)
+        for f in model.output_fields():
+            exclude.append(f.attname)
+        widgets = {}
+
+    # def save(self, commit=True):
+    #     import ipdb; ipdb.set_trace()
+    #     super(ScenarioForm, self).save()
 
 class PlanningUnitSelectionForm(FeatureForm):
     planningunit_ids = forms.CharField()

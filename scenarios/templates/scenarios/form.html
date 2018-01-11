@@ -12,6 +12,7 @@
             <i class="icon-large icon-refresh icon-spin" style="margin-left: 5px; height: 5px" data-bind="visible: showingFilteringResults() && showButtonSpinner()"></i>
         </a>
     </div>
+    <p>Action: {{ action }}</p>
     <form id="scenarios-form" action="{{ action }}" method="post" name="scenarios-form">
         {% for hidden in form.hidden_fields %}
             <div style="display:none;">

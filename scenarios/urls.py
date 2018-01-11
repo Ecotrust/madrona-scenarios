@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'delete_design/(?P<uid>[\w_]+)/$', delete_design),
     # get attributes for a given scenario
     url(r'get_attributes/(?P<uid>[\w_]+)/$', get_attributes),
+    url(r'get_scenarios/(?P<scenario_model_name>[\w_]+)/$', get_scenarios),
     url(r'get_scenarios$', get_scenarios),
     url(r'get_planningunits$', get_planningunits),
     url(r'share_design$', share_design),

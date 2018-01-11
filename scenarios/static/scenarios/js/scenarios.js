@@ -107,7 +107,7 @@ var madrona = {
                     app.viewModel.scenarios.addScenarioToMap(null, {uid: result['X-Madrona-Show']});
                     app.viewModel.scenarios.loadingMessage(false);
                     clearInterval(barTimer);
-                    app.viewModel.scenarios.loadCollectionsFromServer();
+                    // app.viewModel.scenarios.loadCollectionsFromServer();
                 },
                 error: function(result) {
                     app.viewModel.scenarios.loadingMessage(null);
@@ -1126,11 +1126,11 @@ function scenariosModel(options) {
 
     self.updateDesignsScrollBar = function() {
         var designsScrollpane = $('#'+app.viewModel.currentTocId()+'-designs-accordion').data('jsp');
-        if (designsScrollpane === undefined) {
-            $('#'+app.viewModel.currentTocId()+'-designs-accordion').jScrollPane();
-        } else {
-            designsScrollpane.reinitialise();
-        }
+        // if (designsScrollpane === undefined) {
+        //     $('#'+app.viewModel.currentTocId()+'-designs-accordion').jScrollPane();
+        // } else {
+        //     designsScrollpane.reinitialise();
+        // }
     };
 
     //restores state of Designs tab to the initial list of designs
@@ -1177,7 +1177,12 @@ function scenariosModel(options) {
 
     self.removeScenarioForm = function() {
         self.scenarioForm(false);
-        var scenarioForm = document.getElementById(app.viewModel.currentTocId()+'-scenario-form').children[0];
+        try {
+          var scenarioForm = document.getElementById(app.viewModel.currentTocId()+'-scenario-form').children[0];
+        } catch (err) {
+          //RDH 1/10/2018 - this may work for demo. What to do to repopulate the form?
+          var scenarioForm = document.getElementById('scenario_form').children[0];
+        }
         $(scenarioForm).empty();
         ko.cleanNode(scenarioForm);
         delete self.scenarioFormModel;
@@ -1400,17 +1405,19 @@ function scenariosModel(options) {
                     }
 
                 }
-                var layer = new OpenLayers.Layer.Vector(
-                    scenarioId,
-                    {
-                        projection: new OpenLayers.Projection('EPSG:3857'),
-                        displayInLayerSwitcher: false,
-                        styleMap: new OpenLayers.StyleMap(style),
-                        scenarioModel: scenario
-                    }
-                );
+                var layer = mapSettings.getInitFilterResultsLayer(scenarioId, false);
+                // var layer = new OpenLayers.Layer.Vector(
+                //     scenarioId,
+                //     {
+                //         projection: new OpenLayers.Projection('EPSG:3857'),
+                //         displayInLayerSwitcher: false,
+                //         styleMap: new OpenLayers.StyleMap(style),
+                //         scenarioModel: scenario
+                //     }
+                // );
 
-                layer.addFeatures(new OpenLayers.Format.GeoJSON().read(retFeatures));
+                layer.addGeoJSONFeatures(retFeatures);
+                // layer.addFeatures(new OpenLayers.Format.GeoJSON().read(retFeatures));
 
                 if ( scenario ) {
                     //reasigning opacity here, as opacity wasn't 'catching' on state load for scenarios
@@ -1520,6 +1527,7 @@ function scenariosModel(options) {
 
                 if (scenario) {
 
+                    app.map.layers = app.map.getLayers();
                     //app.addVectorAttribution(layer);
                     //in case of edit, removes previously displayed scenario
                     for (var i=0; i<app.map.layers.length; i++) {

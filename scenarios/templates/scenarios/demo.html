@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.0.1/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
 
     <link rel="stylesheet" href="{% static 'scenarios/css/scenarios_form.css' %}" type="text/css">
 
@@ -85,7 +86,12 @@
     <script src="{% static 'scenarios/js/' %}{{ MAP_TECH }}_settings.js"></script>
 
     <script>
+        if (!app.state) {
+          app.state = {}
+        }
+        app.map = mapSettings.getInitMap();
         app.scenariosLayer = mapSettings.getInitFilterResultsLayer('scenarios', false);
+        // TODO: OL4 specific code. It's okay if the demo is always ol4.
         var PUStyle = new ol.style.Style({
             fill: new ol.style.Fill({color: [80,80,80, 0.5]}),
             stroke: new ol.style.Stroke({
@@ -97,21 +103,9 @@
         // TODO: OpenLayers specific code!!!
         app.scenariosSource = app.scenariosLayer.getSource();
         app.planningUnitsSource = app.planningUnitsLayer.getSource();
-        app.map = new ol.Map({
-          layers: [
-            new ol.layer.Tile({
-              source: new ol.source.OSM(),
-              name: 'OSM Base Layer'
-            }),
-            app.planningUnitsLayer,
-            app.scenariosLayer
-          ],
-          target: 'map',
-          view: new ol.View({
-            center: [0, 0],
-            zoom: 2
-          })
-        });
+        app.map.addLayer(app.planningUnitsLayer);
+        app.map.addLayer(app.scenariosLayer);
+
 
         $(function() {
             $.ajax({

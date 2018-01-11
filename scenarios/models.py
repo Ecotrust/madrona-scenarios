@@ -388,6 +388,7 @@ class Scenario(Analysis):
     #     def __unicode__(self):
     #         return u'%s' % self.name
 
+@register
 class DemoScenario(Scenario):
     # DEMO Params
     input_parameter_area = models.BooleanField(verbose_name='Planning Unit Area in sq. meters', default=False)
@@ -481,7 +482,7 @@ class DemoScenario(Scenario):
         return { 'event': 'click', 'attributes': attributes }
 
     def run_filters(self, result):
-        if self.input_area:
+        if self.input_parameter_area:
             result = result.filter(geometry__area__gte=input_min_area, geometry__area__lte=input_max_area)
 
         # if self.input_parameter_distance_to_shore:
@@ -523,6 +524,13 @@ class DemoScenario(Scenario):
         #     result = result.filter(uxo=0)
 
         return result
+
+    class Options:
+        verbose_name = 'Demo Scenario'
+        # icon_url = 'marco/img/multi.png'
+        form = 'scenarios.forms.DemoScenarioForm'
+        form_template = 'scenarios/form.html'
+        show_template = 'scenarios/show.html'
 
 class PlanningUnit(models.Model):
     # prot_number = models.CharField(max_length=7, null=True, blank=True)
