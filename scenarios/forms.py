@@ -154,10 +154,6 @@ class DemoScenarioForm(ScenarioForm):
             exclude.append(f.attname)
         widgets = {}
 
-    # def save(self, commit=True):
-    #     import ipdb; ipdb.set_trace()
-    #     super(ScenarioForm, self).save()
-
 class PlanningUnitSelectionForm(FeatureForm):
     planningunit_ids = forms.CharField()
     description = forms.CharField(widget=forms.Textarea(attrs={'cols': 30, 'rows': 3}), required=False)

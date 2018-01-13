@@ -96,9 +96,9 @@ def delete_design(request, uid):
     return HttpResponse("", status=200)
 
 @login_required()
-def get_scenarios(request, scenario_model_name='Scenario'):
+def get_scenarios(request, scenario_model_name='Scenario', scenario_module_name='scenarios'):
     from django.apps import apps
-    scenario_model = apps.get_app_config('scenarios').get_model(scenario_model_name)
+    scenario_model = apps.get_app_config(scenario_module_name).get_model(scenario_model_name)
     json = []
 
     scenarios = scenario_model.objects.filter(user=request.user, active=True).order_by('date_created')
