@@ -21,9 +21,9 @@ import json
 def demo(request, template='scenarios/demo.html'):
     context = {}
     try:
-        context['GET_SCENARIOS_URL'] =  settings.GET_SCENARIOS_URL
+        context['GET_SCENARIOS_URL'] = settings.GET_SCENARIOS_URL
     except:
-        context['GET_SCENARIOS_URL'] =  "/scenario/get_scenarios/DemoScenario/"
+        context['GET_SCENARIOS_URL'] = "/scenario/get_scenarios/DemoScenario/"
     try:
         context['SCENARIO_FORM_URL'] = settings.SCENARIO_FORM_URL
     except:
@@ -258,19 +258,20 @@ def run_filter_query(filters):
 '''
 '''
 @cache_page(60 * 60) # 1 hour of caching
-def get_filter_count(request):
-    filter_dict = dict(request.GET.items())
-    (query, notes) = run_filter_query(filter_dict)
+def get_filter_count(request, query=False, notes=[]):
+    if not query:
+        filter_dict = dict(request.GET.items())
+        (query, notes) = run_filter_query(filter_dict)
     return HttpResponse(query.count(), status=200)
 
 
 '''
 '''
 @cache_page(60 * 60) # 1 hour of caching
-def get_filter_results(request):
-    filter_dict = dict(request.GET.items())
-
-    (query, notes) = run_filter_query(filter_dict)
+def get_filter_results(request, query=False, notes=[]):
+    if not query:
+        filter_dict = dict(request.GET.items())
+        (query, notes) = run_filter_query(filter_dict)
 
     json = []
     count = query.count()
