@@ -6,16 +6,17 @@ admin.site.register(Permission)
 from .models import *
 
 from django.contrib.gis import admin as geoadmin
-geoadmin.site.register(PlanningUnit)
-geoadmin.site.register(PlanningUnitSelection)
+from django.contrib.gis.admin import GeoModelAdmin, OSMGeoAdmin
+# geoadmin.site.register(PlanningUnit, OSMGeoAdmin)
+# geoadmin.site.register(PlanningUnitSelection, OSMGeoAdmin)
 
-class ScenarioAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'user', 'active', 'date_created', 'date_modified')
-    list_filter = ['date_modified', 'date_created']
-    search_fields = ('name', 'user__username', 'id')
-    fields = ['name', 'active', 'description', 'user']#, 'input_objectives', 'support_file']
-    #NOTE:  can't do 'input_parameters' because it manually specifies a 'through' model ('ScenarioParameters')
-admin.site.register(Scenario, ScenarioAdmin)
+# class ScenarioAdmin(OSMGeoAdmin):
+#     list_display = ('pk', 'name', 'user', 'active', 'date_created', 'date_modified')
+#     list_filter = ['date_modified', 'date_created']
+#     search_fields = ('name', 'user__username', 'id')
+#     # fields = ['name', 'active', 'description', 'user']#, 'input_objectives', 'support_file']
+#     #NOTE:  can't do 'input_parameters' because it manually specifies a 'through' model ('ScenarioParameters')
+# admin.site.register(Scenario, ScenarioAdmin)
 
 # class ObjectiveAdmin(admin.ModelAdmin):
 #     list_display = ('name', 'pk')

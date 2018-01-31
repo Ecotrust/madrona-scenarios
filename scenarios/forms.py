@@ -31,55 +31,55 @@ class ValidFileField(forms.FileField):
             raise FileValidationError()
 
 class ScenarioForm(FeatureForm):
-    description = forms.CharField(widget=forms.Textarea(attrs={'cols': 30, 'rows': 3}), required=False)
-
-    #RDH Generic updates 12/15/2017: I have no idea if we need this, but it isn't hurting anything (yet).
-    support_file = ValidFileField(widget=AdminFileWidget,required=False,label="Support File")
-
-    area = forms.BooleanField(
-        label="Area",
-        required=False,
-        help_text="Area of Planning Unit in sq. meters",
-        widget=CheckboxInput(
-            attrs={
-                'class': 'parameters hidden_checkbox'
-            }
-        )
-    )
-    area_min = forms.FloatField(
-        required=False,
-        initial=3500000000,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'slidervalue',
-                'pre_text': 'Area'
-            }
-        )
-    )
-    area_max = forms.FloatField(
-        required=False,
-        initial=5500000000,
-        widget=forms.TextInput(
-            attrs={
-                'class': 'slidervalue',
-                'pre_text': 'to',
-                'post_text': 'm<sup>2</sup>'
-            }
-        )
-    )
-    area_input = forms.FloatField(
-        widget=DualSliderWidget(
-            'area_min',
-            'area_max',
-            min=3000000000,
-            max=6000000000,
-            step=100000000
-        )
-    )
+    # description = forms.CharField(widget=forms.Textarea(attrs={'cols': 30, 'rows': 3}), required=False)
+    #
+    # #RDH Generic updates 12/15/2017: I have no idea if we need this, but it isn't hurting anything (yet).
+    # support_file = ValidFileField(widget=AdminFileWidget,required=False,label="Support File")
+    #
+    # area = forms.BooleanField(
+    #     label="Area",
+    #     required=False,
+    #     help_text="Area of Planning Unit in sq. meters",
+    #     widget=CheckboxInput(
+    #         attrs={
+    #             'class': 'parameters hidden_checkbox'
+    #         }
+    #     )
+    # )
+    # area_min = forms.FloatField(
+    #     required=False,
+    #     initial=3500000000,
+    #     widget=forms.TextInput(
+    #         attrs={
+    #             'class': 'slidervalue',
+    #             'pre_text': 'Area'
+    #         }
+    #     )
+    # )
+    # area_max = forms.FloatField(
+    #     required=False,
+    #     initial=5500000000,
+    #     widget=forms.TextInput(
+    #         attrs={
+    #             'class': 'slidervalue',
+    #             'pre_text': 'to',
+    #             'post_text': 'm<sup>2</sup>'
+    #         }
+    #     )
+    # )
+    # area_input = forms.FloatField(
+    #     widget=DualSliderWidget(
+    #         'area_min',
+    #         'area_max',
+    #         min=3000000000,
+    #         max=6000000000,
+    #         step=100000000
+    #     )
+    # )
 
     def get_step_0_fields(self):
         names = [
-            ('area', 'area_min', 'area_max', 'area_input'),
+            # ('area', 'area_min', 'area_max', 'area_input'),
         ]
         return self._get_fields(names)
 

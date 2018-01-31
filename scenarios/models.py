@@ -15,7 +15,7 @@ from django.utils.html import escape
 # import mapnik
 from picklefield import PickledObjectField
 
-@register
+# @register
 class Scenario(Analysis):
 
     description = models.TextField(null=True, blank=True)
@@ -50,8 +50,9 @@ class Scenario(Analysis):
     def run_filters(self, result):
         return result
 
-    def run(self):
-        result = PlanningUnit.objects.all()
+    def run(self, result=None):
+        if not result:
+            result = PlanningUnit.objects.all()
 
         # PU Filtration occurs here
         result = self.run_filters(result)
@@ -85,46 +86,6 @@ class Scenario(Analysis):
 
     def save(self, rerun=None, *args, **kwargs):
         super(Scenario, self).save(*args, **kwargs)
-        # if rerun is None and self.pk is None:
-        #     rerun = True
-        # if rerun is None and self.pk is not None: #if editing a scenario and no value for rerun is given
-        #     rerun = False
-        #     if not rerun:
-        #         # try:
-        #         #     self.save()
-        #         #     orig = Scenario.objects.get(pk=self.pk)
-        #         # except:
-        #         #     import ipdb
-        #         #     ipdb.set_trace()
-        #
-        #         rerun = True
-        #
-        #         # if not rerun:
-        #         #     for f in Scenario.input_fields():
-        #         #         # Is original value different from form value?
-        #         #         if getattr(orig, f.name) != getattr(self, f.name):
-        #         #             #print('input_field, %s, has changed' %f.name)
-        #         #             rerun = True
-        #         #             break
-        #         # if not rerun:
-        #         #     '''
-        #         #         the substrates need to be grabbed, then saved, then grabbed again because
-        #         #         both getattr calls (orig and self) return the same original list until the model has been saved
-        #         #         (perhaps because form.save_m2m has to be called), after which calls to getattr will
-        #         #         return the same list (regardless of whether we use orig or self)
-        #         #     '''
-        #         #     orig_weas = set(getattr(self, 'input_wea').all())
-        #         #     orig_substrates = set(getattr(self, 'input_substrate').all())
-        #         #     orig_sediments = set(getattr(self, 'input_sediment').all())
-        #         #     super(Scenario, self).save(rerun=False, *args, **kwargs)
-        #         #     new_weas = set(getattr(self, 'input_wea').all())
-        #         #     new_substrates = set(getattr(self, 'input_substrate').all())
-        #         #     new_sediments = set(getattr(self, 'input_sediment').all())
-        #         #     if orig_substrates != new_substrates or orig_sediments != new_sediments or orig_weas != new_weas:
-        #         #         rerun = True
-        #     super(Scenario, self).save(rerun=rerun, *args, **kwargs)
-        # else: #editing a scenario and rerun is provided
-        #     super(Scenario, self).save(rerun=rerun, *args, **kwargs)
 
     def __unicode__(self):
         return u'%s' % self.name
@@ -135,22 +96,6 @@ class Scenario(Analysis):
     @classmethod
     def mapnik_geomfield(self):
         return "output_geom"
-
-    # @classmethod
-    # def mapnik_style(self):
-    #     polygon_style = mapnik.Style()
-    #
-    #     ps = mapnik.PolygonSymbolizer(mapnik.Color('#ffffff'))
-    #     ps.fill_opacity = 0.5
-    #
-    #     ls = mapnik.LineSymbolizer(mapnik.Color('#555555'),0.75)
-    #     ls.stroke_opacity = 0.5
-    #
-    #     r = mapnik.Rule()
-    #     r.symbols.append(ps)
-    #     r.symbols.append(ls)
-    #     polygon_style.rules.append(r)
-    #     return polygon_style
 
     @classmethod
     def input_parameter_fields(klass):
@@ -178,39 +123,6 @@ class Scenario(Analysis):
     @property
     def geometry_is_empty(self):
         return len(self.planning_units) == 0
-
-    # @property
-    # def input_wea_names(self):
-    #     return [wea.wea_name for wea in self.input_wea.all()]
-    #
-    # @property
-    # def input_substrate_names(self):
-    #     return [substrate.substrate_name for substrate in self.input_substrate.all()]
-    #
-    # @property
-    # def input_sediment_names(self):
-    #     return [sediment.sediment_name for sediment in self.input_sediment.all()]
-
-    #TODO: is this being used...?  Yes, see show.html
-    # @property
-    # def has_wind_energy_criteria(self):
-    #     wind_parameters = Scenario.input_parameter_fields()
-    #     for wp in wind_parameters:
-    #         if getattr(self, wp.name):
-    #             return True
-    #     return False
-    #
-    # @property
-    # def has_shipping_filters(self):
-    #     shipping_filters = Scenario.input_filter_fields()
-    #     for sf in shipping_filters:
-    #         if getattr(self, sf.name):
-    #             return True
-    #     return False
-    #
-    # @property
-    # def has_military_filters(self):
-    #     return False
 
     @property
     def color(self):
@@ -363,6 +275,9 @@ class Scenario(Analysis):
     def get_id(self):
         return self.id
 
+    class Meta:
+        abstract = True
+
     class Options:
         verbose_name = 'Report Name'
         icon_url = 'marco/img/multi.png'
@@ -370,77 +285,14 @@ class Scenario(Analysis):
         form_template = 'scenarios/form.html'
         show_template = 'scenarios/show.html'
 
-    #no longer needed? Used in 'color'
-    # class Objective(models.Model):
-    #     name = models.CharField(max_length=35)
-    #     color = models.CharField(max_length=8, default='778B1A55')
-    #
-    #     def __unicode__(self):
-    #         return u'%s' % self.name
-
-    #no longer needed?
-    # class Parameter(models.Model):
-    #     ordering_id = models.IntegerField(null=True, blank=True)
-    #     name = models.CharField(max_length=35, null=True, blank=True)
-    #     shortname = models.CharField(max_length=35, null=True, blank=True)
-    #     objectives = models.ManyToManyField("Objective", null=True, blank=True)
-    #
-    #     def __unicode__(self):
-    #         return u'%s' % self.name
 
 @register
 class DemoScenario(Scenario):
     # DEMO Params
+    id = models.IntegerField(primary_key=True)
     input_parameter_area = models.BooleanField(verbose_name='Planning Unit Area in sq. meters', default=False)
     input_min_area = models.IntegerField(verbose_name='Minimum Planning Unit Area in sq. meters', null=True, blank=True, default=None)
     input_max_area = models.IntegerField(verbose_name='Maximum Planning Unit Area in sq. meters', null=True, blank=True, default=None)
-
-    #Input Parameters
-    #input_objectives = models.ManyToManyField("Objective")
-    #input_parameters = models.ManyToManyField("Parameter")
-    #input_dist_port = models.FloatField(verbose_name='Distance to Port')
-    #GeoPhysical
-    # input_parameter_depth = models.BooleanField(verbose_name='Depth Parameter', default=False)
-    # input_min_depth = models.FloatField(verbose_name='Minimum Depth', null=True, blank=True)
-    # input_max_depth = models.FloatField(verbose_name='Maximum Depth', null=True, blank=True)
-    #
-    # input_parameter_distance_to_shore = models.BooleanField(verbose_name='Distance to Shore', default=False)
-    # input_min_distance_to_shore = models.FloatField(verbose_name='Minimum Distance to Shore', null=True, blank=True)
-    # input_max_distance_to_shore = models.FloatField(verbose_name='Maximum Distance to Shore', null=True, blank=True)
-    #
-    # input_parameter_substrate = models.BooleanField(verbose_name='Substrate Parameter', default=False)
-    # input_substrate = models.ManyToManyField('Substrate', null=True, blank=True)
-    #
-    # input_parameter_sediment = models.BooleanField(verbose_name='Sediment Parameter', default=False)
-    # input_sediment = models.ManyToManyField('Sediment', null=True, blank=True)
-    #
-    # #Wind Energy
-    #
-    # input_parameter_wind_speed = models.BooleanField(verbose_name='Wind Speed Parameter', default=False)
-    # input_avg_wind_speed = models.FloatField(verbose_name='Average Wind Speed', null=True, blank=True)
-    #
-    # input_parameter_distance_to_awc = models.BooleanField(verbose_name='Distance to AWC Station', default=False)
-    # input_distance_to_awc = models.FloatField(verbose_name='Maximum Distance to AWC Station', null=True, blank=True)
-    #
-    # input_parameter_distance_to_substation = models.BooleanField(verbose_name='Distance to Coastal Substation', default=False)
-    # input_distance_to_substation = models.FloatField(verbose_name='Maximum Distance to Coastal Substation', null=True, blank=True)
-    #
-    # input_parameter_wea = models.BooleanField(verbose_name='WEA Parameter', default=False)
-    # input_wea = models.ManyToManyField('WEA', null=True, blank=True)
-    #
-    # #Shipping
-    #
-    # input_filter_ais_density = models.BooleanField(verbose_name='Excluding Areas with AIS Density >= 1', default=False)
-    # #input_ais_density = models.FloatField(verbose_name='Mean AIS Density', null=True, blank=True)
-    #
-    # input_filter_distance_to_shipping = models.BooleanField(verbose_name='Distance to Ship Routing Measures', default=False)
-    # input_distance_to_shipping = models.FloatField(verbose_name='Minimum Distance to Ship Routing Measures', null=True, blank=True)
-    #
-    # #Security
-    #
-    # input_filter_uxo = models.BooleanField(verbose_name='Excluding Areas with UXO', default=False)
-    #
-    #Descriptors (name field is inherited from Analysis)
 
     def serialize_attributes(self):
         attributes = []
@@ -448,34 +300,6 @@ class DemoScenario(Scenario):
             # Demo dual slider
             area = '%d - %d meters<sup>2</sup>' % (self.input_min_area, self.input_max_area)
             attributes.append({'title': 'Area', 'data': area})
-
-        # if self.input_parameter_wind_speed:
-        #     wind_speed = '%.1f m/s' % (self.input_avg_wind_speed)
-        #     attributes.append({'title': 'Minimum Average Wind Speed', 'data': wind_speed})
-        # if self.input_parameter_distance_to_shore:
-        #     distance_to_shore = '%.0f - %.0f miles' % (self.input_min_distance_to_shore,
-        #                                                self.input_max_distance_to_shore)
-        #     attributes.append({'title': 'Distance to Shore', 'data': distance_to_shore})
-        # if self.input_parameter_depth:
-        #     depth_range = '%.0f - %.0f meters' %(self.input_min_depth, self.input_max_depth)
-        #     attributes.append({'title': 'Depth Range', 'data': depth_range})
-        # if self.input_parameter_distance_to_awc:
-        #     distance_to_awc = '%.0f miles' % (self.input_distance_to_awc)
-        #     attributes.append({'title': 'Max Distance to Proposed AWC Hub', 'data': distance_to_awc})
-        # if self.input_parameter_distance_to_substation:
-        #     distance_to_substation = '%.0f miles' % (self.input_distance_to_substation)
-        #     attributes.append({'title': 'Max Distance to Coastal Substation', 'data': distance_to_substation})
-        # if self.input_filter_distance_to_shipping:
-        #     miles_to_shipping = round(self.input_distance_to_shipping, 0)
-        #     if miles_to_shipping == 1:
-        #         distance_to_shipping = '%s mile' %miles_to_shipping
-        #     else:
-        #         distance_to_shipping = '%s miles' %miles_to_shipping
-        #     attributes.append({'title': 'Minimum Distance to Ship Routing Measures', 'data': distance_to_shipping})
-        # if self.input_filter_ais_density:
-        #     attributes.append({'title': 'Excluding Areas with Moderate or High Ship Traffic', 'data': ''})
-        # if self.input_filter_uxo:
-        #     attributes.append({'title': 'Excluding Areas with Unexploded Ordnances', 'data': ''})
 
         if self.planning_units:
             attributes.append({'title': 'Number of Planning Units', 'data': self.planning_units.count(',')+1})
@@ -485,43 +309,6 @@ class DemoScenario(Scenario):
         if self.input_parameter_area:
             result = result.filter(geometry__area__gte=input_min_area, geometry__area__lte=input_max_area)
 
-        # if self.input_parameter_distance_to_shore:
-        #     #why isn't this max_distance >= input.min_distance && min_distance <= input.max_distance ???
-        #     result = result.filter(avg_distance__gte=self.input_min_distance_to_shore, avg_distance__lte=self.input_max_distance_to_shore)
-        # if self.input_parameter_depth:
-        #     #note:  converting input to negative values and converted to meters (to match db)
-        #     input_min_depth = -self.input_min_depth
-        #     input_max_depth = -self.input_max_depth
-        #     #result = result.filter(min_depth__lte=input_min_depth, max_depth__gte=input_max_depth)
-        #     result = result.filter(avg_depth__lte=input_min_depth, avg_depth__gte=input_max_depth)
-        #     result = result.filter(avg_depth__lt=0) #not sure this is doing anything, but do want to ensure 'no data' values are not included
-        # '''
-        # if self.input_parameter_substrate:
-        #     input_substrate = [s.substrate_name for s in self.input_substrate.all()]
-        #     result = result.filter(majority_seabed__in=input_substrate)
-        # if self.input_parameter_sediment:
-        #     input_sediment = [s.sediment_name for s in self.input_sediment.all()]
-        #     result = result.filter(majority_sediment__in=input_sediment)
-        # '''
-        # #Wind Energy
-        # if self.input_parameter_wind_speed:
-        #     #input_wind_speed = mph_to_mps(self.input_avg_wind_speed)
-        #     result = result.filter(min_wind_speed_rev__gte=self.input_avg_wind_speed)
-        # if self.input_parameter_wea:
-        #     input_wea = [wea.wea_id for wea in self.input_wea.all()]
-        #     result = result.filter(wea_number__in=input_wea)
-        # if self.input_parameter_distance_to_awc:
-        #     result = result.filter(awc_min_distance__lte=self.input_distance_to_awc)
-        # if self.input_parameter_distance_to_substation:
-        #     result = result.filter(substation_min_distance__lte=self.input_distance_to_substation)
-        # #Shipping
-        # if self.input_filter_ais_density:
-        #     result = result.filter(ais_all_vessels_maj__lte=1)
-        # if self.input_filter_distance_to_shipping:
-        #     result = result.filter(tsz_min_distance__gte=self.input_distance_to_shipping)
-        # #Security
-        # if self.input_filter_uxo:
-        #     result = result.filter(uxo=0)
 
         return result
 
@@ -533,167 +320,10 @@ class DemoScenario(Scenario):
         show_template = 'scenarios/show.html'
 
 class PlanningUnit(models.Model):
-    # prot_number = models.CharField(max_length=7, null=True, blank=True)
-    # prot_aprv = models.CharField(max_length=11, null=True, blank=True)
-    # block_number = models.CharField(max_length=6, null=True, blank=True)
-    # prot_numb = models.CharField(max_length=15, null=True, blank=True)
-    #
-    # min_depth = models.FloatField()
-    # max_depth = models.FloatField()
-    # avg_depth = models.FloatField()
-    #
-    # min_wind_speed = models.FloatField()
-    # max_wind_speed = models.FloatField()
-    #
-    # majority_sediment = models.CharField(max_length=35, null=True, blank=True)  #LeaseBlock Update: might change back to IntegerField
-    # variety_sediment = models.IntegerField()
-    #
-    # majority_seabed = models.CharField(max_length=35, null=True, blank=True) #LeaseBlock Update: might change back to IntegerField
-    # variety_seabed = models.IntegerField(null=True, blank=True)
-    #
-    # min_distance = models.FloatField(null=True, blank=True)
-    # max_distance = models.FloatField(null=True, blank=True)
-    # avg_distance = models.FloatField(null=True, blank=True)
-    #
-    # awc_min_distance = models.FloatField(null=True, blank=True)
-    # awc_max_distance = models.FloatField(null=True, blank=True)
-    # awc_avg_distance = models.FloatField(null=True, blank=True)
-    #
-    # wea_number = models.IntegerField(null=True, blank=True)
-    # wea_name = models.CharField(max_length=10, null=True, blank=True)
-    #
-    # ais_all_vessels_maj = models.IntegerField(null=True, blank=True)
-    # ais_all_vessels_low = models.FloatField(null=True, blank=True)
-    # ais_all_vessels_medium = models.FloatField(null=True, blank=True)
-    # ais_all_vessels_high = models.FloatField(null=True, blank=True)
-    # ais_cargo_vessels_maj = models.IntegerField(null=True, blank=True)
-    # ais_cargo_vessels_low = models.FloatField(null=True, blank=True)
-    # ais_cargo_vessels_medium = models.FloatField(null=True, blank=True)
-    # ais_cargo_vessels_high = models.FloatField(null=True, blank=True)
-    # ais_passenger_vessels_maj = models.IntegerField(null=True, blank=True)
-    # ais_passenger_vessels_low = models.FloatField(null=True, blank=True)
-    # ais_passenger_vessels_medium = models.FloatField(null=True, blank=True)
-    # ais_passenger_vessels_high = models.FloatField(null=True, blank=True)
-    # ais_tanker_vessels_maj = models.IntegerField(null=True, blank=True)
-    # ais_tanker_vessels_low = models.FloatField(null=True, blank=True)
-    # ais_tanker_vessels_medium = models.FloatField(null=True, blank=True)
-    # ais_tanker_vessels_high = models.FloatField(null=True, blank=True)
-    # ais_tugtow_vessels_maj = models.IntegerField(null=True, blank=True)
-    # ais_tugtow_vessels_low = models.FloatField(null=True, blank=True)
-    # ais_tugtow_vessels_medium = models.FloatField(null=True, blank=True)
-    # ais_tugtow_vessels_high = models.FloatField(null=True, blank=True)
-    #
-    # min_wind_speed_rev = models.FloatField(null=True, blank=True)
-    # max_wind_speed_rev = models.FloatField(null=True, blank=True)
-    #
-    # tsz_min_distance = models.FloatField(null=True, blank=True)
-    # tsz_max_distance = models.FloatField(null=True, blank=True)
-    # tsz_mean_distance = models.FloatField(null=True, blank=True)
-    #
-    # lace_coral_count = models.IntegerField(null=True, blank=True)
-    # lace_coral_name = models.CharField(max_length=50, null=True, blank=True)
-    # black_coral_count = models.IntegerField(null=True, blank=True)
-    # black_coral_name = models.CharField(max_length=50, null=True, blank=True)
-    # soft_coral_count = models.IntegerField(null=True, blank=True)
-    # soft_coral_name = models.CharField(max_length=50, null=True, blank=True)
-    # gorgo_coral_count = models.IntegerField(null=True, blank=True)
-    # gorgo_coral_name = models.CharField(max_length=50, null=True, blank=True)
-    # sea_pen_count = models.IntegerField(null=True, blank=True)
-    # sea_pen_name = models.CharField(max_length=50, null=True, blank=True)
-    # hard_coral_count = models.IntegerField(null=True, blank=True)
-    # hard_coral_name = models.CharField(max_length=50, null=True, blank=True)
-    #
-    # seabed_depression = models.FloatField(null=True, blank=True)
-    # seabed_low_slope = models.FloatField(null=True, blank=True)
-    # seabed_steep = models.FloatField(null=True, blank=True)
-    # seabed_mid_flat = models.FloatField(null=True, blank=True)
-    # seabed_side_slow = models.FloatField(null=True, blank=True)
-    # seabed_high_flat = models.FloatField(null=True, blank=True)
-    # seabed_high_slope = models.FloatField(null=True, blank=True)
-    # seabed_total = models.FloatField(null=True, blank=True)
-    #
-    # discharge_min_distance = models.FloatField(null=True, blank=True)
-    # discharge_max_distance = models.FloatField(null=True, blank=True)
-    # discharge_mean_distance = models.FloatField(null=True, blank=True)
-    # discharge_flow_min_distance = models.FloatField(null=True, blank=True)
-    # discharge_flow_max_distance = models.FloatField(null=True, blank=True)
-    # discharge_flow_mean_distance = models.FloatField(null=True, blank=True)
-    #
-    # dredge_site = models.IntegerField(null=True, blank=True)
-    #
-    # wpa = models.IntegerField(null=True, blank=True)
-    # wpa_name = models.CharField(max_length=75, null=True, blank=True)
-    #
-    # shipwreck_density = models.IntegerField(null=True, blank=True)
-    #
-    # uxo = models.IntegerField(null=True, blank=True)
-    #
-    # substation_min_distance = models.FloatField(null=True, blank=True)
-    # substation_max_distance = models.FloatField(null=True, blank=True)
-    # substation_mean_distance = models.FloatField(null=True, blank=True)
-    #
-    # marco_region = models.IntegerField(null=True, blank=True)
 
     geometry = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Planning Unit Geometry")
     #geometry_client = models.MultiPolygonField(srid=settings.GEOMETRY_CLIENT_SRID, null=True, blank=True, verbose_name="Planning Unit Client Geometry")
     objects = models.GeoManager()
-
-    # @property
-    # def avg_wind_speed(self):
-    #     try:
-    #         return (self.min_wind_speed_rev + self.max_wind_speed_rev) / 2.0
-    #     except:
-    #         return None
-    #
-    # @property
-    # def substrate(self):
-    #     try:
-    #         return Substrate.objects.get(substrate_id=self.majority_seabed).substrate_name
-    #     except:
-    #         return 'Unknown'
-    #
-    # @property
-    # def sediment(self):
-    #     try:
-    #         return Sediment.objects.get(sediment_name=self.majority_sediment).sediment_output
-    #     except:
-    #         return 'Unknown'
-    #
-    # @property
-    # def wea_label(self):
-    #     if self.wea_name is None:
-    #         return ""
-    #     else:
-    #         return "Wind Energy Area: "
-    #
-    # @property
-    # def wea_state_name(self):
-    #     if self.wea_name is None:
-    #         return ""
-    #     else:
-    #         return self.wea_name
-    #
-    # @property
-    # def wind_speed_output(self):
-    #     if self.min_wind_speed == self.max_wind_speed:
-    #         return "%.1f mph" % (mps_to_mph(self.min_wind_speed))
-    #     else:
-    #         return "%.1f - %.1f mph" % (mps_to_mph(self.min_wind_speed),
-    #                                     mps_to_mph(self.max_wind_speed))
-    #
-    # @property
-    # def ais_density(self):
-    #     if self.ais_all_vessels_maj <= 1:
-    #         return 'Low'
-    #     else:
-    #         return 'Moderate/High'
-    #
-    # @property
-    # def depth_range_output(self):
-    #     if self.min_depth == self.max_depth:
-    #         return "$.0f meters" % (-self.min_depth)
-    #     else:
-    #         return "%.0f - %.0f meters" % (-self.min_depth, -self.max_depth)
 
     @property
     def kml_done(self):
@@ -706,32 +336,9 @@ class PlanningUnit(models.Model):
         """ % ( self.uid, self.model_uid(),
                 asKml(self.geometry.transform( settings.GEOMETRY_CLIENT_SRID, clone=True ))
               )
-#
-# #still needed?
-# class Substrate(models.Model):
-#     substrate_id = models.IntegerField()
-#     substrate_name = models.CharField(max_length=35)
-#     substrate_shortname = models.CharField(max_length=35)
-#
-#     def __unicode__(self):
-#         return u'%s' % self.substrate_name
-# #still needed?
-# class Sediment(models.Model):
-#     sediment_id = models.IntegerField()
-#     sediment_name = models.CharField(max_length=35)
-#     sediment_output = models.CharField(max_length=55)
-#     sediment_shortname = models.CharField(max_length=35)
-#
-#     def __unicode__(self):
-#         return u'%s' % self.sediment_output
-# #still needed?
-# class WEA(models.Model):
-#     wea_id = models.IntegerField()
-#     wea_name = models.CharField(max_length=35)
-#     wea_shortname = models.CharField(max_length=35)
-#
-#     def __unicode__(self):
-#         return u'%s' % self.wea_name
+
+    class Meta:
+        abstract = True
 
 @register
 class PlanningUnitSelection(Analysis):

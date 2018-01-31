@@ -18,6 +18,7 @@ from django.conf import settings
 import json
 
 
+
 def demo(request, template='scenarios/demo.html'):
     context = {}
     try:
@@ -116,7 +117,7 @@ def get_scenarios(request, scenario_model_name='Scenario', scenario_module_name=
             'sharing_groups': sharing_groups
         })
 
-    shared_scenarios = Scenario.objects.shared_with_user(request.user)
+    shared_scenarios = scenario_model.objects.shared_with_user(request.user)
     for scenario in shared_scenarios:
         if scenario.active and scenario not in scenarios:
             username = scenario.user.username
@@ -257,9 +258,11 @@ def run_filter_query(filters):
 
 '''
 '''
-@cache_page(60 * 60) # 1 hour of caching
+# @cache_page(60 * 60) # 1 hour of caching
 def get_filter_count(request, query=False, notes=[]):
-    if not query:
+    from django.db.models.query import QuerySet
+    from django.contrib.gis.db.models.query import GeoQuerySet
+    if not type(query) in [QuerySet, GeoQuerySet] :
         filter_dict = dict(request.GET.items())
         (query, notes) = run_filter_query(filter_dict)
     return HttpResponse(query.count(), status=200)
@@ -267,9 +270,11 @@ def get_filter_count(request, query=False, notes=[]):
 
 '''
 '''
-@cache_page(60 * 60) # 1 hour of caching
+# @cache_page(60 * 60) # 1 hour of caching
 def get_filter_results(request, query=False, notes=[]):
-    if not query:
+    from django.db.models.query import QuerySet
+    from django.contrib.gis.db.models.query import GeoQuerySet
+    if not type(query) in [QuerySet, GeoQuerySet] :
         filter_dict = dict(request.GET.items())
         (query, notes) = run_filter_query(filter_dict)
 
