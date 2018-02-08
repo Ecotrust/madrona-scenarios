@@ -277,13 +277,17 @@ def get_filter_results(request, query=False, notes=[]):
     if not type(query) in [QuerySet, GeoQuerySet] :
         filter_dict = dict(request.GET.items())
         (query, notes) = run_filter_query(filter_dict)
+        if query.count() > settings.MAX_SCENARIO_RESULTS:
+            query = query.filter(pk=None)
+            notes = 'Too many features to report. Please apply more filters.'
 
     json = []
     count = query.count()
     if count == 0:
         json = [{
             'count': 0,
-            'wkt': None
+            'wkt': None,
+            'notes': notes
         }]
     else:
         dissolved_geom = query.aggregate(Union('geometry'))
@@ -293,7 +297,8 @@ def get_filter_results(request, query=False, notes=[]):
             raise Exception("No planning units available with the current filters.")
         json = [{
             'count': count,
-            'wkt': dissolved_geom.wkt
+            'wkt': dissolved_geom.wkt,
+            'notes': notes
         }]
 
     # return # of grid cells and dissolved geometry in geojson
