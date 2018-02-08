@@ -258,7 +258,7 @@ def run_filter_query(filters):
 
 '''
 '''
-# @cache_page(60 * 60) # 1 hour of caching
+@cache_page(60 * 60) # 1 hour of caching
 def get_filter_count(request, query=False, notes=[]):
     from django.db.models.query import QuerySet
     from django.contrib.gis.db.models.query import GeoQuerySet
@@ -270,7 +270,7 @@ def get_filter_count(request, query=False, notes=[]):
 
 '''
 '''
-# @cache_page(60 * 60) # 1 hour of caching
+@cache_page(60 * 60) # 1 hour of caching
 def get_filter_results(request, query=False, notes=[]):
     from django.db.models.query import QuerySet
     from django.contrib.gis.db.models.query import GeoQuerySet
