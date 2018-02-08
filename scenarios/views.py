@@ -277,9 +277,9 @@ def get_filter_results(request, query=False, notes=[]):
     if not type(query) in [QuerySet, GeoQuerySet] :
         filter_dict = dict(request.GET.items())
         (query, notes) = run_filter_query(filter_dict)
-        if query.count() > settings.MAX_SCENARIO_RESULTS:
-            query = query.filter(pk=None)
-            notes = 'Too many features to report. Please apply more filters.'
+    if query.count() > settings.MAX_SCENARIO_RESULTS:
+        query = query.filter(pk=None)
+        notes = 'Too many features to report. Please apply more filters.'
 
     json = []
     count = query.count()
