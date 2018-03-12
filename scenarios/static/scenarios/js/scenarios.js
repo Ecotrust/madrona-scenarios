@@ -170,7 +170,8 @@ function scenarioFormModel(options) {
 
         if (param_bool()) {
             param_bool(false);
-            param_element.removeAttr('checked');
+            // param_element.removeAttr('checked'); // jquery 3.0.0 breaking change. no longer sets to false
+            param_element.prop( "checked", false ) // jquery 3.0.0 fix for removeAttr
             param_widget.css('display', 'none');
             self.removeFilter(param);
         } else {
