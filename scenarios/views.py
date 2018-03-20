@@ -17,6 +17,15 @@ from scenarios.models import Scenario, PlanningUnitSelection, PlanningUnit
 from django.conf import settings
 import json
 
+def check_user(request):
+    try:
+        if not request.user.is_authenticated and settings.ALLOW_ANONYMOUS_DRAW and settings.ANONYMOUS_USER_PK:
+            from django.contrib.auth.models import User
+            anon_user = User.objects.get(pk=settings.ANONYMOUS_USER_PK)
+            request.user = anon_user
+    except:
+        pass
+    return request
 
 
 def demo(request, template='scenarios/demo.html'):
@@ -98,6 +107,7 @@ def delete_design(request, uid):
 
 @login_required()
 def get_scenarios(request, scenario_model_name='Scenario', scenario_module_name='scenarios'):
+    request = check_user(request)
     from django.apps import apps
     scenario_model = apps.get_app_config(scenario_module_name).get_model(scenario_model_name)
     json = []
@@ -272,6 +282,7 @@ def get_filter_count(request, query=False, notes=[]):
 '''
 @cache_page(60 * 60) # 1 hour of caching
 def get_filter_results(request, query=False, notes=[]):
+    request = check_user(request)
     from django.db.models.query import QuerySet
     from django.contrib.gis.db.models.query import GeoQuerySet
     if not type(query) in [QuerySet, GeoQuerySet] :
