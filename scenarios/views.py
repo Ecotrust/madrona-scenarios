@@ -306,8 +306,12 @@ def get_filter_results(request, query=False, notes=[]):
             dissolved_geom = dissolved_geom['geometry__union']
         else:
             raise Exception("No planning units available with the current filters.")
+        clone_area = dissolved_geom.clone()
+        clone_area.transform(2163)
+        area_m2 = clone_area.area
         json = [{
             'count': count,
+            'area_m2': area_m2,
             'wkt': dissolved_geom.wkt,
             'notes': notes
         }]
