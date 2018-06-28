@@ -72,7 +72,9 @@ class Scenario(Analysis):
 
         self.active = True
 
-        self.geometry_final_area = self.geometry_dissolved.area
+        geom_clone = self.geometry_dissolved.clone()
+        geom_clone.transform(2163)
+        self.geometry_final_area = geom_clone.area
         self.planning_units = ','.join(str(i)
                                      for i in result.values_list('id',
                                                                  flat=True))
