@@ -277,6 +277,41 @@ def get_filter_count(request, query=False, notes=[]):
         (query, notes) = run_filter_query(filter_dict)
     return HttpResponse(query.count(), status=200)
 
+# Recursive method that uses bisection to root out any geoms that can't be dissolved
+def dissolve_complex_geometries(geom_query, geom_count=None):
+    if not geom_count:
+        geom_count = geom_query.count()
+    if not geom_count == 1:
+        cutoff = int(geom_count/2)
+        try:
+            first_half = geom_query.all()[:cutoff].aggregate(Union('geometry'))['geometry__union'].buffer(0)
+        except:
+            first_half = dissolve_complex_geometries(geom_query.all()[:cutoff], cutoff).buffer(0)
+        try:
+            second_half = geom_query.all()[cutoff:].aggregate(Union('geometry'))['geometry__union'].buffer(0)
+        except:
+            # Test if odd, if so, back half has 1 more record. Using bitwise & for speed
+            if geom_count & 1:
+                second_half = dissolve_complex_geometries(geom_query.all()[cutoff:], cutoff+1).buffer(0)
+            else:
+                second_half = dissolve_complex_geometries(geom_query.all()[cutoff:], cutoff).buffer(0)
+        if first_half:
+            if second_half:
+                try:
+                    return first_half.union(second_half)
+                except:
+                    return first_half
+            else:
+                return first_half
+        else:
+            return second_half
+    else:
+        geometry = geom_query.all()[0].geometry.buffer(0)
+        try:
+            return geometry.union(geometry).buffer(0)
+        except:
+            print('BAD GEOM: %d' % geom_query[0].planning_unit_id)
+            return False
 
 '''
 '''
@@ -297,22 +332,41 @@ def get_filter_results(request, query=False, notes=[]):
     if count == 0:
         json = [{
             'count': 0,
+            'area_m2': 0,
             'wkt': None,
             'notes': notes
         }]
     else:
-        dissolved_geom = query.aggregate(Union('geometry'))
-        if dissolved_geom['geometry__union']:
-            dissolved_geom = dissolved_geom['geometry__union']
+        try:
+            dissolved_geom = query.aggregate(Union('geometry'))
+            if dissolved_geom['geometry__union']:
+                dissolved_geom = dissolved_geom['geometry__union']
+            else:
+                raise Exception("No planning units available with the current filters.")
+        except:
+            try:
+                if not settings.IGNORE_BAD_GEOMS and count < settings.MAX_SCENARIO_RESULTS:
+                    dissolved_geom = dissolve_complex_geometries(query.all())
+                else: dissolved_geom = False
+            except:
+                raise Exception("Error dissolving geometry into multipolygon (scenarios.views.get_filter_results).")
+
+        if dissolved_geom:
+            clone_area = dissolved_geom.clone()
+            clone_area.transform(2163)
+            area_m2 = clone_area.area
+            wkt = dissolved_geom.wkt
         else:
-            raise Exception("No planning units available with the current filters.")
-        clone_area = dissolved_geom.clone()
-        clone_area.transform(2163)
-        area_m2 = clone_area.area
+            area_m2 = 0
+            wkt = None
+            for pu in query.all():
+                clone_pu = pu.geometry.clone()
+                clone_pu.transform(2163)
+                area_m2 += clone_pu.area
         json = [{
             'count': count,
             'area_m2': area_m2,
-            'wkt': dissolved_geom.wkt,
+            'wkt': wkt,
             'notes': notes
         }]
 

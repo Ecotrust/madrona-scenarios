@@ -10,7 +10,7 @@ import time
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon
-from django.contrib.gis.db.models.aggregates import Union
+from django.contrib.gis.db.models.aggregates import Union, Collect
 from django.utils.html import escape
 # import mapnik
 from picklefield import PickledObjectField
@@ -57,18 +57,22 @@ class Scenario(Analysis):
         # PU Filtration occurs here
         result = self.run_filters(result)
 
-        dissolved_geom = result.aggregate(Union('geometry'))
-
-        if dissolved_geom:
-            dissolved_geom = dissolved_geom['geometry__union']
-        else:
+        try:
+            dissolved_geom = result.aggregate(Union('geometry'))
+            if dissolved_geom:
+                dissolved_geom = dissolved_geom['geometry__union']
+            else:
+                raise Exception("No planning units available with the current filters.")
+        except:
             raise Exception("No planning units available with the current filters.")
 
         if type(dissolved_geom) == MultiPolygon:
             self.geometry_dissolved = dissolved_geom
         else:
-            self.geometry_dissolved = MultiPolygon(dissolved_geom,
-                                                   srid=dissolved_geom.srid)
+            try:
+                self.geometry_dissolved = MultiPolygon(dissolved_geom, srid=dissolved_geom.srid)
+            except:
+                raise Exception("Unable to dissolve the returned planning units into a single geometry")
 
         self.active = True
 
