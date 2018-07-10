@@ -323,17 +323,21 @@ def get_filter_results(request, query=False, notes=[]):
     if not type(query) in [QuerySet, GeoQuerySet] :
         filter_dict = dict(request.GET.items())
         (query, notes) = run_filter_query(filter_dict)
-    if query.count() > settings.MAX_SCENARIO_RESULTS:
-        query = query.filter(pk=None)
-        notes = 'Too many features to report. Please apply more filters.'
-
     json = []
     count = query.count()
-    if count == 0:
+    if count > settings.MAX_SCENARIO_RESULTS:
+        notes = 'Too many features to report. Please apply more filters.'
+        wkt = None
+        area_m2 = 0
+        if count < 15000:
+            for pu in query:
+                clone_pu = pu.geometry.clone()
+                clone_pu.transform(2163)
+                area_m2 += clone_pu.area
         json = [{
-            'count': 0,
-            'area_m2': 0,
-            'wkt': None,
+            'count': count,
+            'area_m2': area_m2,
+            'wkt': wkt,
             'notes': notes
         }]
     else:
