@@ -316,7 +316,7 @@ def dissolve_complex_geometries(geom_query, geom_count=None):
 '''
 '''
 @cache_page(60 * 60) # 1 hour of caching
-def get_filter_results(request, query=False, notes=[]):
+def get_filter_results(request, query=False, notes=[], extra_context={}):
     request = check_user(request)
     from django.db.models.query import QuerySet
     from django.contrib.gis.db.models.query import GeoQuerySet
@@ -334,12 +334,7 @@ def get_filter_results(request, query=False, notes=[]):
                 clone_pu = pu.geometry.clone()
                 clone_pu.transform(2163)
                 area_m2 += clone_pu.area
-        json = [{
-            'count': count,
-            'area_m2': area_m2,
-            'wkt': wkt,
-            'notes': notes
-        }]
+
     else:
         try:
             dissolved_geom = query.aggregate(Union('geometry'))
@@ -367,12 +362,21 @@ def get_filter_results(request, query=False, notes=[]):
                 clone_pu = pu.geometry.clone()
                 clone_pu.transform(2163)
                 area_m2 += clone_pu.area
-        json = [{
-            'count': count,
-            'area_m2': area_m2,
-            'wkt': wkt,
-            'notes': notes
-        }]
+
+    results_dict = {
+        'count': count,
+        'area_m2': area_m2,
+        'wkt': wkt,
+        'notes': notes
+    }
+    try:
+        # For Py 3.5 and better:
+        return_dict = {**results_dict, **extra_context}
+    except:
+        return_dict = results_dict
+        for key in extra_context.keys():
+            return_dict[key] = extra_context[key]
+    json = [return_dict]
 
     # return # of grid cells and dissolved geometry in geojson
     return HttpResponse(dumps(json))
