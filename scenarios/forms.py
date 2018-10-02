@@ -81,10 +81,15 @@ class ScenarioForm(FeatureForm):
         names = [
             # ('area', 'area_min', 'area_max', 'area_input'),
         ]
-        return self._get_fields(names)
+        # example dict return
+        return {
+            'instructions': 'Select criteria to filter your results',
+            'fields': self._get_fields(names)
+        }
 
     def get_step_1_fields(self):
         names = []
+        # example list return (will get default dict values added)
         return self._get_fields(names)
 
     def get_steps(self):
