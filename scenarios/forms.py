@@ -88,7 +88,25 @@ class ScenarioForm(FeatureForm):
         return self._get_fields(names)
 
     def get_steps(self):
-        return self.get_step_0_fields(),
+        #TODO: fill steps_list with your get_step_fields functions
+        steps_list = (self.get_step_0_fields(),)
+        return_list = []
+        default_instructions = 'Select criteria to filter your results'
+        for step in steps_list:
+            if type(step) == dict:
+                if not 'fields' in step.keys():
+                    step['fields'] = []
+                if not 'instructions' in step.keys():
+                    step['instructions'] = default_instructions
+                return_list.append(step)
+            else:
+                step_dict = {'instructions': default_instructions }
+                if type(step) == list:
+                    step_dict['fields'] = step
+                else:
+                    step_dict['fields'] = []
+                return_list.append(step_dict)
+        return return_list
 
     def _get_fields(self, names):
         fields = []
