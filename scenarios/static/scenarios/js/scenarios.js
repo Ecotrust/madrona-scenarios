@@ -328,7 +328,7 @@ function scenarioFormModel(options) {
 
         (function() {
             var request = $.ajax({
-                url: '/scenario/get_filter_results',
+                url: '/scenarios/get_filter_results',
                 type: 'GET',
                 data: self.filters,
                 dataType: 'json',
