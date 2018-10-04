@@ -23,8 +23,8 @@ class Scenario(Analysis):
     active = models.BooleanField(default=True)
 
     #I'm finding myself wishing lease_blocks was spelled without the underscore...
-    planning_units = models.TextField(verbose_name='Planning Unit IDs', null=True, blank=True)
-    geometry_final_area = models.FloatField(verbose_name='Total Area', null=True, blank=True)
+    planning_units = models.TextField(verbose_name='Planning Unit IDs', null=True, blank=True, default=None)
+    geometry_final_area = models.FloatField(verbose_name='Total Area', null=True, blank=True, default=None)
     geometry_dissolved = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Scenario result dissolved")
 
     ###
