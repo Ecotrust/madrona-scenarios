@@ -1,14 +1,21 @@
     // Initial map controls should be implemented in mp-visualize, but that's not true yet,
     //    and we cannot guarantee that all scenarios users will user mp-visualize (see UCSRB)
-    if (typeof madronaMap == "undefined") {
-    class madronaMap extends ol.Map {
-        getLayers() {
-            return ol.Map.prototype.getLayers.call(this).getArray();
-        }
-        zoomToExtent(extent) {
-            ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
-        }
-    }
+    // if (typeof madronaMap == "undefined") {
+    // class madronaMap extends ol.Map {
+    //     getLayers() {
+    //         return ol.Map.prototype.getLayers.call(this).getArray();
+    //     }
+    //     zoomToExtent(extent) {
+    //         ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
+    //     }
+    // }
+
+    ol.Map.getLayers = function() {
+        return ol.Map.prototype.getLayers.call(this).getArray();
+    };
+    ol.Map.zoomToExtent = function(extent) {
+        ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
+    };
 
     app.setLayerZIndex = function(layer, index) {
         layer.layer.setZIndex(index);
@@ -29,7 +36,13 @@
 
     var mapSettings = {
         getInitMap: function() {
-            map = new madronaMap({
+            // ol.Map.getLayers = function() {
+            //     return ol.Map.prototype.getLayers.call(this).getArray();
+            // };
+            // ol.Map.zoomToExtent = function(extent) {
+            //     ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
+            // };
+            map = new ol.Map({
                 layers: [
                     new ol.layer.Tile({
                         source: new ol.source.OSM(),
@@ -82,7 +95,6 @@
             }
             return layer;
         }
-    }
     }
 
     mapSettings.getInitFilterResultsLayer = function(layerName, style) {
