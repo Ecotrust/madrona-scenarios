@@ -812,7 +812,7 @@ function mapLinksModel() {
             urlHash = '#' + bookmarkState;
         }
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var embedURL = urlOrigin + '/embed/map/' + urlHash;
         if ( projectSlug ) {
@@ -831,7 +831,7 @@ function mapLinksModel() {
             mapWindow = window.open('', windowName, windowSize);
         var urlOrigin = window.location.origin;
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var header = '<a href="/visualize"><img src="'+urlOrigin+'/media/marco/img/marco-logo_planner.jpg" style="border: 0px;"/></a>';
         var iframeID = '';
