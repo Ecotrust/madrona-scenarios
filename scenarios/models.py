@@ -14,6 +14,7 @@ from django.contrib.gis.db.models.aggregates import Union, Collect
 from django.utils.html import escape
 # import mapnik
 from picklefield import PickledObjectField
+from django.db.models import Manager as GeoManager
 
 # @register
 class Scenario(Analysis):
@@ -290,7 +291,6 @@ class Scenario(Analysis):
         form = 'scenarios.forms.ScenarioForm'
         form_template = 'scenarios/form.html'
         show_template = 'scenarios/show.html'
-
 
 @register
 class DemoScenario(Scenario):

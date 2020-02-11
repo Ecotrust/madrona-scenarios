@@ -245,7 +245,6 @@ def share_design(request):
     design.share_with(groups, append=False)
     return HttpResponse("", status=200)
 
-
 '''
 '''
 

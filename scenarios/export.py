@@ -1,14 +1,23 @@
 import datetime
+
 from django.contrib.gis.gdal import SpatialReference
 import shapefile
 import io
 import zipfile
 
 def get_shp_projection(srid):
+    # RDH 20200210 - two different solutions for spatialRefSys below.
+    #   I implemented the 'connection' approach more recently, but if it works
+    #   gdal's SpatialReference looks MUCH better
     try:
         s = SpatialReference(srid)
-    except SpatialRefSys.DoesNotExist:
-        return None
+    except Exception as e:
+        try:
+            from django.db import connection
+            SpatialRefSys = connection.ops.spatial_ref_sys()
+            s = SpatialRefSys.objects.get(srid=srid)
+        except SpatialRefSys.DoesNotExist as e2:
+            return None
 
     return s.wkt
 
