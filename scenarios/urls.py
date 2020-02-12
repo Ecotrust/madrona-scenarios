@@ -2,7 +2,6 @@
 from django.urls import re_path, include
 # from . import views
 from .views import (demo, sdc_analysis, delete_design, get_attributes, get_scenarios,
-                   get_leaseblocks, get_leaseblock_features,
                    share_design, copy_design, get_selections, ExportShapefile,
                    ExportGeoJSON, ExportWKT, ExportKML, get_planningunits,
                    get_planningunit_features, get_filter_count, get_filter_results)
@@ -20,12 +19,10 @@ urlpatterns = [
     re_path(r'get_scenarios$', get_scenarios),
     re_path(r'get_scenarios/(?P<scenario_model_name>[\w_]+)/$', get_scenarios),
     re_path(r'get_planningunits$', get_planningunits),
-    re_path(r'get_leaseblocks$', get_leaseblocks),
     re_path(r'share_design$', share_design),
     re_path(r'copy_design/(?P<uid>[\w_]+)/$', copy_design),
     re_path(r'get_selections$', get_selections),
     re_path(r'get_planningunit_features$', get_planningunit_features),
-    re_path(r'get_leaseblock_features$', get_leaseblock_features),
     re_path(r'get_filter_count$', get_filter_count),
     re_path(r'get_filter_results$', get_filter_results),
 
