@@ -329,7 +329,7 @@ class PlanningUnit(models.Model):
 
     geometry = models.MultiPolygonField(srid=settings.GEOMETRY_DB_SRID, null=True, blank=True, verbose_name="Planning Unit Geometry")
     #geometry_client = models.MultiPolygonField(srid=settings.GEOMETRY_CLIENT_SRID, null=True, blank=True, verbose_name="Planning Unit Client Geometry")
-    objects = models.GeoManager()
+    objects = GeoManager()
 
     @property
     def kml_done(self):
