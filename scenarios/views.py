@@ -318,8 +318,7 @@ def dissolve_complex_geometries(geom_query, geom_count=None):
 def get_filter_results(request, query=False, notes=[], extra_context={}):
     request = check_user(request)
     from django.db.models.query import QuerySet
-    from django.contrib.gis.db.models.query import GeoQuerySet
-    if not type(query) in [QuerySet, GeoQuerySet] :
+    if not type(query) == QuerySet :
         filter_dict = dict(request.GET.items())
         (query, notes) = run_filter_query(filter_dict)
     json = []
