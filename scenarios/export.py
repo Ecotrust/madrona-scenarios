@@ -110,7 +110,23 @@ def geometries_to_shp(base_name, geom_attrs, srid=4326):
     shx_bytes = StringIO()
     dbf_bytes = StringIO()
 
-    writer = shapefile.Writer(shp=shp_bytes, shx=shx_bytes, dbf=dbf_bytes, shapeType=shapefile.POLYGON)
+    # Assume geometry type is GeometryCollection
+    writer = shapefile.Writer(shp=shp_bytes, shx=shx_bytes, dbf=dbf_bytes)
+    geometry = geom_attrs[0][0]
+    # All geometry types should be consistent or we can't write a useful shapefile
+    feature_type = geometry[0].geom_type
+    if feature_type == 'Polygon':
+        writer.shapeType = shapefile.POLYGON
+        feat_writer = writer.poly
+    elif feature_type == 'LineString':
+        writer.shapeType = shapefile.POLYLINE
+        feat_writer = writer.line
+    elif feature_type == 'Point':
+        writer.shapeType = shapefile.POINT
+        feat_writer = writer.point
+    else:
+        writer.shapeType = shapefile.POLYGON
+        feat_writer = writer.poly
 
     # type_map and field_transform should be extracted
     field_data = geom_attrs[0][1]
@@ -134,37 +150,51 @@ def geometries_to_shp(base_name, geom_attrs, srid=4326):
         datetime: lambda s: s.strftime('%Y%m%d'),
     }
 
-    geometry = geom_attrs[0][0]
     if not srid:
         srid = geometry.srid
 
     for geometry, attrs in geom_attrs:
         if srid != geometry.srid:
-            geometry = geometry.transform(srid, clone=True)
+            geom = geometry.transform(srid, clone=True)
 
         transformed_attrs = dict((k, field_transform[type(v)](v))
                          for k, v in attrs.items())
 
-        if len(geometry) > 1:
+        if len(geom) > 1 or geom.geom_type == 'GeometryCollection':
             # Multipolygon; shapefiles apparently support polygons with multiple
             # exterior rings, but pyshp doesn't know how to write multipolygons
-            for poly in geometry:
-                # coords = json.loads(poly.geojson)['coordinates']
+            for poly in geom:
                 coords = get_formatted_coords(poly)
                 try:
-                    writer.poly(coords)
+                    if feat_writer == writer.point:
+                        feat_writer(coords[0], coords[1])
+                    else:
+                        feat_writer(coords)
                 except TypeError as e:
-                    writer.poly([coords])
+                    if feat_writer == writer.point:
+                        coords = [float(x) for x in coords.split(',')]
+                        feat_writer(coords[0], coords[1])
+                    else:
+                        feat_writer([coords])
                 writer.record(**transformed_attrs)
         else:
-            # coords = json.loads(geometry.geojson)['coordinates']
-            coords = get_formatted_coords(geometry)
+            coords = get_formatted_coords(geom)
             try:
-                writer.poly(coords[0])
+                if feat_writer == writer.point:
+                    feat_writer(coords[0][0], coords[0][1])
+                else:
+                    feat_writer(coords[0])
             except TypeError as e:
-                writer.poly(coords)
+                if feat_writer == writer.point:
+                    feat_writer(coords[0], coords[1])
+                else:
+                    feat_writer(coords)
             except Exception as e:
-                writer.poly([coords])
+                if feat_writer == writer.point:
+                    coords = [float(x) for x in coords.split(',')]
+                    feat_writer(coords[0], coords[1])
+                else:
+                    feat_writer([coords])
             writer.record(**transformed_attrs)
 
     writer.close()
