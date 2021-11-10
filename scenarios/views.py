@@ -317,23 +317,32 @@ class ExportGeoJSON(GeometryExporter):
         """
         feature, geometry = self.get_feature(feature_id)
 
-        gj = ('{"type": "Feature",'
-              '"crs": { "type": "name", "properties": {"name": "%s"}},'
-              '"properties": {}, "geometry": %s}')
+        fc_gj_dict = {
+          "type": "FeatureCollection",
+          "features": []
+         }
 
-        # Transform to 4326. A lot of online tools (http://geojson.io)
-        # apparently don't understand anything else.
-        geom = geometry.transform(4326, clone=True)
-        from scenarios.export import get_formatted_coords
+        #Assume geometry is Geometry Collection
+        # TODO: confirm or enforce this assumption
+        for merc_geom in geometry:
+            gj = ('{"type": "Feature",'
+            '"crs": { "type": "name", "properties": {"name": "%s"}},'
+            '"properties": {}, "geometry": %s}')
+            # Transform to 4326. A lot of online tools (http://geojson.io)
+            # apparently don't understand anything else.
+            geom = merc_geom.transform(4326, clone=True)
+            from scenarios.export import get_formatted_coords
 
-        gj = gj % (srid_to_urn(geom.srid), geom.geojson)
+            gj = gj % (srid_to_urn(geom.srid), geom.geojson)
 
-        #fix coordinate ofder based on gdal version:
-        gj_dict = json.loads(gj)
-        gj_dict['geometry']['coordinates'] = get_formatted_coords(geom)
-        gj = json.dumps(gj_dict)
+            #fix coordinate ofder based on gdal version:
+            gj_dict = json.loads(gj)
+            gj_dict['geometry']['coordinates'] = get_formatted_coords(geom)
+            fc_gj_dict['features'].append(gj_dict)
 
-        response = HttpResponse(content=gj, content_type='application/vnd.geo+json')
+        fc_gj = json.dumps(fc_gj_dict)
+
+        response = HttpResponse(content=fc_gj, content_type='application/vnd.geo+json')
         response['Content-Disposition'] = 'attachment; filename=%s.geojson' % feature.name
 
         return response
