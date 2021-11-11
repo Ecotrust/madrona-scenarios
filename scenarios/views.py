@@ -387,7 +387,7 @@ def convertKMLCoords(kml, geom_type='Polygon'):
         if type(geom_list) != list:
             geom_list = [geom_list]
         # assuming always 1 GeometryCollection feature
-        for geom in geom_list:
+        for idx, geom in enumerate(geom_list):
             for key in geom.keys():
                 if geom_type == 'Polygon':
                     if type(geom[key]) == list:
@@ -398,15 +398,27 @@ def convertKMLCoords(kml, geom_type='Polygon'):
                 elif key == 'coordinates':
                     geom[key] = flipKMLCoords(geom[key])
                     if 'MultiGeometry' in kml_dict.keys():
-                        kml_dict['MultiGeometry'][geom_type][key] = geom[key]
+                        if type(kml_dict['MultiGeometry'][geom_type]) == list:
+                            kml_dict['MultiGeometry'][geom_type][idx][key] = geom[key]
+                        else:
+                            kml_dict['MultiGeometry'][geom_type][key] = geom[key]
                     else:
-                        kml_dict[geom_type][key] = geom[key]
+                        if type(kml_dict[geom_type]) == list:
+                            kml_dict[geom_type][idx][key] = geom[key]
+                        else:
+                            kml_dict[geom_type][key] = geom[key]
                 else:
                     geom[key]['coordinates'] = flipKMLCoords(geom[key]['coordinates'])
                     if 'MultiGeometry' in kml_dict.keys():
-                        kml_dict['MultiGeometry'][geom_type][key] = geom[key]
+                        if type(kml_dict['MultiGeometry'][geom_type]) == list:
+                            kml_dict['MultiGeometry'][geom_type][idx][key] = geom[key]
+                        else:
+                            kml_dict['MultiGeometry'][geom_type][key] = geom[key]
                     else:
-                        kml_dict[geom_type][key] = geom[key]
+                        if type(kml_dict[geom_type]) == list:
+                            kml_dict[geom_type][idx][key] = geom[key]
+                        else:
+                            kml_dict[geom_type][key] = geom[key]
 
         return xmltodict.unparse(kml_dict, full_document=False)
 
@@ -421,7 +433,10 @@ class ExportKML(GeometryExporter):
         geom = geometry.transform(4326, clone=True)
 
         #fix coordinate order based on gdal version:
-        kmldata = convertKMLCoords(geom.kml, geom[0].geom_type)
+        if geom.geom_type in ['GeometryCollection', 'MultiPolygon']:
+            kmldata = convertKMLCoords(geom.kml, geom[0].geom_type)
+        else:
+            kmldata = convertKMLCoords(geom.kml, geom.geom_type)
 
         kml = '''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://earth.google.com/kml/2.1">
