@@ -374,6 +374,7 @@ def flipKMLCoords(coord_str):
         return ' '.join(out_list)
 
 def convertKMLCoords(kml, geom_type='Polygon'):
+
     # gdal v2.x and below got the order right.
     if int(gdal.__version__.split('.')[0]) < 3:
         return kml
@@ -385,6 +386,7 @@ def convertKMLCoords(kml, geom_type='Polygon'):
             geom_list = kml_dict[geom_type]
         if type(geom_list) != list:
             geom_list = [geom_list]
+        # assuming always 1 GeometryCollection feature
         for geom in geom_list:
             for key in geom.keys():
                 if geom_type == 'Polygon':
@@ -394,9 +396,17 @@ def convertKMLCoords(kml, geom_type='Polygon'):
                     else:
                         geom[key]['LinearRing']['coordinates'] = flipKMLCoords(geom[key]['LinearRing']['coordinates'])
                 elif key == 'coordinates':
-                    geom[key] == flipKMLCoords(geom[key])
+                    geom[key] = flipKMLCoords(geom[key])
+                    if 'MultiGeometry' in kml_dict.keys():
+                        kml_dict['MultiGeometry'][geom_type][key] = geom[key]
+                    else:
+                        kml_dict[geom_type][key] = geom[key]
                 else:
                     geom[key]['coordinates'] = flipKMLCoords(geom[key]['coordinates'])
+                    if 'MultiGeometry' in kml_dict.keys():
+                        kml_dict['MultiGeometry'][geom_type][key] = geom[key]
+                    else:
+                        kml_dict[geom_type][key] = geom[key]
 
         return xmltodict.unparse(kml_dict, full_document=False)
 
