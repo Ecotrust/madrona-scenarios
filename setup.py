@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='madrona-scenarios',
-    version='0.0.1',
+    version='0.0.2',
     packages=['scenarios'],
     install_requires=[
         'django-flatblocks',
@@ -19,9 +19,9 @@ setup(
     license='TBD',
     description='Scenarios for Madrona',
     long_description=README,
-    url='http://www.pointnineseven.com/path/to/opensource/info',
-    author='Point97, LLC',
-    author_email='nobody@pointnineseven.com',
+    url='https://github.com/Ecotrust/madrona-scenarios/',
+    author='Ecotrust',
+    author_email='ksdev@ecotrust.org',
     classifiers=[
         'Environment :: Web Development',
         'Framework :: Django',
@@ -29,8 +29,8 @@ setup(
         'License :: TBD',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Internet :: WWW/HTTP',
     ],
 )
