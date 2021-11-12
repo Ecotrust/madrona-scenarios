@@ -13,6 +13,7 @@ setup(
     install_requires=[
         'django-flatblocks',
         'django-picklefield',
+        'xmltodict',
     ],
     include_package_data=True,
     license='TBD',
