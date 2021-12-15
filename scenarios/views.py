@@ -376,7 +376,7 @@ def flipKMLCoords(coord_str):
 def convertKMLCoords(kml, geom_type='Polygon'):
 
     # gdal v2.x and below got the order right.
-    if int(gdal.__version__.split('.')[0]) < 3:
+    if not settings.SUPPORT_INVERTED_COORDINATES or int(gdal.__version__.split('.')[0]) < 3:
         return kml
     else:
         kml_dict = xmltodict.parse(kml)

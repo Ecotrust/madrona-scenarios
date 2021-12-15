@@ -1,6 +1,7 @@
 import datetime
 # Django 1.8+ upgrade - RDH 20180427
 # from django.contrib.gis import SpatialRefSys
+from django.conf import settings
 from django.db import connection
 from osgeo import gdal
 import io
@@ -61,10 +62,10 @@ def attrs_to_description(attrs):
 def get_formatted_coords(geometry):
     # GDAL/PyShp prior to v3 get the coordinate order for shapefile input right
     # If running v3 or later, you need to invert the x and y coords for PyShp.
-    if int(gdal.__version__.split('.')[0]) < 3:
-        return json.loads(geometry.geojson)['coordinates']
-    else:
+    if settings.SUPPORT_INVERTED_COORDINATES and int(gdal.__version__.split('.')[0]) >= 3:
         return formatCoordinates(geometry.coords)
+    else:
+        return json.loads(geometry.geojson)['coordinates']
 
 def formatCoordinates(data):
     if type(data[0]) in [tuple, list]:
