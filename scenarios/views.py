@@ -1,5 +1,6 @@
 import io
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.views.generic import View
 from features.models import Feature
 from features.registry import get_feature_by_uid
@@ -206,9 +207,13 @@ def share_design(request):
         return response
     #remove previously shared with groups, before sharing with new list
     design.share_with(None)
-    groups = request.user.mapgroupmember_set.all()
-    groups = groups.filter(map_group__name__in=group_names)
-    groups = [g.map_group.permission_group for g in groups]
+    map_groups = request.user.mapgroupmember_set.all()
+    map_groups = map_groups.filter(map_group__name__in=group_names)
+    groups = [g.map_group.permission_group for g in map_groups]
+    # Be sure to support 'share with public' groups!
+    for group in Group.objects.filter(name__in=settings.SHARING_TO_PUBLIC_GROUPS).filter(name__in=group_names):
+        if group not in groups:
+            groups.append(group)
     design.share_with(groups, append=False)
     return HttpResponse("", status=200)
 
