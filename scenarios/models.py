@@ -39,10 +39,10 @@ class Scenario(Analysis):
     input_max_distance_to_shore = models.FloatField(verbose_name='Maximum Distance to Shore', null=True, blank=True)
 
     input_parameter_substrate = models.BooleanField(verbose_name='Substrate Parameter', default=False)
-    input_substrate = models.ManyToManyField('Substrate', null=True, blank=True)
+    input_substrate = models.ManyToManyField('Substrate', blank=True)
 
     input_parameter_sediment = models.BooleanField(verbose_name='Sediment Parameter', default=False)
-    input_sediment = models.ManyToManyField('Sediment', null=True, blank=True)
+    input_sediment = models.ManyToManyField('Sediment', blank=True)
 
     #Wind Energy
 
@@ -56,7 +56,7 @@ class Scenario(Analysis):
     input_distance_to_substation = models.FloatField(verbose_name='Maximum Distance to Coastal Substation', null=True, blank=True)
 
     input_parameter_wea = models.BooleanField(verbose_name='WEA Parameter', default=False)
-    input_wea = models.ManyToManyField('WEA', null=True, blank=True)
+    input_wea = models.ManyToManyField('WEA', blank=True)
 
     #Shipping
 
@@ -468,7 +468,7 @@ class Parameter(models.Model):
     ordering_id = models.IntegerField(null=True, blank=True)
     name = models.CharField(max_length=35, null=True, blank=True)
     shortname = models.CharField(max_length=35, null=True, blank=True)
-    objectives = models.ManyToManyField("Objective", null=True, blank=True)
+    objectives = models.ManyToManyField("Objective", blank=True)
 
     def __unicode__(self):
         return u'%s' % self.name
